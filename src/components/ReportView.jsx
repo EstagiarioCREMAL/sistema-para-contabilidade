@@ -27,6 +27,8 @@ export default function ReportView({ reportType }) {
   const [pendingFile, setPendingFile] = useState(null);
   const [isGeneratingMaster, setIsGeneratingMaster] = useState(false);
   const [savedRowId, setSavedRowId] = useState(null);
+  const [selectedReportType, setSelectedReportType] = useState(reportType);
+  const [exportReportType, setExportReportType] = useState(reportType);
 
   const [formData, setFormData] = useState({
     itemIndex: '',
@@ -38,6 +40,12 @@ export default function ReportView({ reportType }) {
     installment: '',
     observation: ''
   });
+
+  // Keep selectedReportType in sync when user changes active tab
+  React.useEffect(() => {
+    setSelectedReportType(reportType);
+    setExportReportType(reportType);
+  }, [reportType]);
 
   const fileInputRef = useRef(null);
 
@@ -201,17 +209,17 @@ export default function ReportView({ reportType }) {
       return;
     }
 
-    // Validation 3: Duplicate detection
+    // Validation 3: Duplicate detection (uses selectedReportType)
     if (formData.processNumber) {
       const duplicate = entries.find(e =>
-        e.reportType === reportType &&
+        e.reportType === selectedReportType &&
         String(e.processNumber) === String(formData.processNumber).trim() &&
         e.date === formData.date
       );
       if (duplicate) {
         const confirmed = await askConfirmation(
           '⚠️ Possível Duplicata',
-          `Já existe um lançamento com o Processo nº ${formData.processNumber} na data ${formData.date}. Deseja lançar mesmo assim?`
+          `Já existe um lançamento com o Processo nº ${formData.processNumber} na data ${formData.date} em "${REPORT_LABEL[selectedReportType]}". Deseja lançar mesmo assim?`
         );
         if (!confirmed) return;
       }
@@ -227,7 +235,7 @@ export default function ReportView({ reportType }) {
     setIsSubmitting(true);
     try {
       const newId = await addEntry({
-        reportType,
+        reportType: selectedReportType,
         itemIndex: formData.itemIndex,
         date: formData.date,
         beneficiary: formData.beneficiary,
@@ -238,7 +246,8 @@ export default function ReportView({ reportType }) {
         observation: formData.observation
       });
 
-      addToast('Lançamento adicionado com sucesso!', 'success');
+      const targetLabel = REPORT_LABEL[selectedReportType];
+      addToast(`Lançamento adicionado em "${targetLabel}" com sucesso!`, 'success');
       setSavedRowId(newId);
       setTimeout(() => setSavedRowId(null), 2000);
 
@@ -252,6 +261,7 @@ export default function ReportView({ reportType }) {
         installment: '',
         observation: ''
       });
+      // Keep the selected type so user can keep filing to the same report without reselecting
     } catch {
       addToast('Erro ao adicionar lançamento.', 'danger');
     }
@@ -329,6 +339,20 @@ export default function ReportView({ reportType }) {
 
   // Column count for footer colSpan (7 cols without actions, 8 with)
   const totalCols = isLocked ? 7 : 8;
+
+  // Labels for the report type selector
+  const REPORT_LABEL = {
+    [REPORT_TYPES.FISCALIZACAO]: 'Fiscalização',
+    [REPORT_TYPES.EDUCACAO]: 'Educação Médica',
+    [REPORT_TYPES.COTA]: 'Cota Parte'
+  };
+
+  // Entries + budget for the currently selected export type
+  const exportBudget = budgets[exportReportType];
+  const exportEntriesForModal = entries.filter(e => {
+    const entryDate = new Date(e.date);
+    return e.reportType === exportReportType && entryDate.getUTCFullYear() === reportYear;
+  });
 
   return (
     <>
@@ -565,6 +589,53 @@ export default function ReportView({ reportType }) {
       }}>
         <h2 className="card-title"><Plus size={20} /> Adicionar Nova Despesa {isLocked && '(Bloqueado)'}</h2>
         <form onSubmit={handleSubmit} style={{ marginTop: '1rem' }}>
+
+          {/* Report type selector — allows filing into any report without switching tabs */}
+          <div className="form-group" style={{ marginBottom: '1rem' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: '700', color: 'var(--primary-color)' }}>
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                width: '20px', height: '20px', borderRadius: '50%',
+                backgroundColor: 'var(--primary-color)', color: 'white',
+                fontSize: '0.7rem', fontWeight: '800', flexShrink: 0
+              }}>R</span>
+              Tipo de Relatório
+            </label>
+            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.4rem', flexWrap: 'wrap' }}>
+              {Object.entries(REPORT_LABEL).map(([type, label]) => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => setSelectedReportType(type)}
+                  style={{
+                    padding: '0.45rem 1rem',
+                    borderRadius: 'var(--radius-sm)',
+                    border: selectedReportType === type
+                      ? '2px solid var(--primary-color)'
+                      : '2px solid var(--border-color)',
+                    backgroundColor: selectedReportType === type
+                      ? 'var(--primary-color)'
+                      : 'transparent',
+                    color: selectedReportType === type
+                      ? 'white'
+                      : 'var(--text-secondary)',
+                    fontWeight: selectedReportType === type ? '700' : '500',
+                    fontSize: '0.875rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            {selectedReportType !== reportType && (
+              <p style={{ marginTop: '0.4rem', fontSize: '0.75rem', color: 'var(--primary-color)', fontWeight: '600' }}>
+                ⚡ Esta despesa será lançada em <strong>{REPORT_LABEL[selectedReportType]}</strong> (não na aba atual)
+              </p>
+            )}
+          </div>
+
           <div className="form-row">
             <div className="form-group" style={{ flex: 0.5 }}>
               <label>Nº (Seq.)</label>
@@ -643,7 +714,7 @@ export default function ReportView({ reportType }) {
             <input type="text" name="observation" value={formData.observation} onChange={handleChange} placeholder="Notas internas..." />
           </div>
           <button type="submit" className="btn btn-accent" style={{ marginTop: '1.5rem' }} disabled={isSubmitting || isLocked}>
-            <Plus size={18} /> {isSubmitting ? 'Lançando...' : 'Lançar Despesa'}
+            <Plus size={18} /> {isSubmitting ? 'Lançando...' : `Lançar em ${REPORT_LABEL[selectedReportType]}`}
           </button>
         </form>
       </div>
@@ -915,7 +986,16 @@ export default function ReportView({ reportType }) {
               </div>
 
               <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.25rem' }}>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>Relatório Individual</label>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '600' }}>Relatório Individual</label>
+                <select
+                  value={exportReportType}
+                  onChange={(e) => setExportReportType(e.target.value)}
+                  style={{ width: '100%', padding: '0.6rem 0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', marginBottom: '0.75rem', fontSize: '0.875rem' }}
+                >
+                  <option value={REPORT_TYPES.FISCALIZACAO}>Fiscalização</option>
+                  <option value={REPORT_TYPES.EDUCACAO}>Educação Médica</option>
+                  <option value={REPORT_TYPES.COTA}>Cota Parte</option>
+                </select>
                 <button 
                   className="btn btn-outline" 
                   style={{ width: '100%', justifyContent: 'center' }}
@@ -923,12 +1003,12 @@ export default function ReportView({ reportType }) {
                     addToast('Gerando Relatório...');
                     await new Promise(r => setTimeout(r, 50)); // Allow UI to update
                     try {
-                      const cleanName = reportType === 'fiscalizacao' ? 'fiscalização' : reportType === 'educacao' ? 'educação_médica' : 'cota_parte';
+                      const cleanName = exportReportType === 'fiscalizacao' ? 'fiscalização' : exportReportType === 'educacao' ? 'educação_médica' : 'cota_parte';
                       await generateExcel({
-                        reportType,
-                        reportName: getReportName(reportType, reportYear),
-                        entries: entriesForExport,
-                        budget: currentBudget,
+                        reportType: exportReportType,
+                        reportName: getReportName(exportReportType, reportYear),
+                        entries: exportEntriesForModal,
+                        budget: exportBudget,
                         presidentInfo,
                         includeObservations: showObsInExcel,
                         fileName: `${cleanName}_contabil${reportYear}.xlsx`
@@ -941,12 +1021,15 @@ export default function ReportView({ reportType }) {
                     }
                   }}
                 >
-                  Baixar apenas {reportType === 'fiscalizacao' ? 'Fiscalização' : reportType === 'educacao' ? 'Educação Médica' : 'Cota Parte'}
+                  Baixar {exportReportType === 'fiscalizacao' ? 'Fiscalização' : exportReportType === 'educacao' ? 'Educação Médica' : 'Cota Parte'}
                 </button>
               </div>
 
               <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.25rem' }}>
                 <label style={{ display: 'block', marginBottom: '0.75rem', fontSize: '0.875rem', fontWeight: 'bold' }}>Exportar por Parcela Específica</label>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
+                  O relatório selecionado acima (Relatório Individual) também é usado aqui.
+                </p>
                 <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
                   <div style={{ flex: 1 }}>
                     <label style={{ fontSize: '0.75rem' }}>Nº</label>
@@ -978,13 +1061,13 @@ export default function ReportView({ reportType }) {
                       addToast('Gerando Excel da Parcela...');
                       await new Promise(r => setTimeout(r, 50)); // Allow UI to update
                       try {
-                        const filteredEntries = entriesForExport.filter(e => String(e.installment) === String(exportInstallment.number));
-                        const cleanName = reportType === 'fiscalizacao' ? 'fiscalização' : reportType === 'educacao' ? 'educação_médica' : 'cota_parte';
+                        const filteredEntries = exportEntriesForModal.filter(e => String(e.installment) === String(exportInstallment.number));
+                        const cleanName = exportReportType === 'fiscalizacao' ? 'fiscalização' : exportReportType === 'educacao' ? 'educação_médica' : 'cota_parte';
                         await generateExcel({
-                          reportType,
-                          reportName: getReportName(reportType, reportYear),
+                          reportType: exportReportType,
+                          reportName: getReportName(exportReportType, reportYear),
                           entries: filteredEntries,
-                          budget: currentBudget,
+                          budget: exportBudget,
                           presidentInfo,
                           includeObservations: showObsInExcel,
                           installmentInfo: {
@@ -1011,12 +1094,12 @@ export default function ReportView({ reportType }) {
                       addToast('Gerando PDF da Parcela...');
                       await new Promise(r => setTimeout(r, 50)); // Allow UI to update
                       try {
-                        const filteredEntries = entriesForExport.filter(e => String(e.installment) === String(exportInstallment.number));
+                        const filteredEntries = exportEntriesForModal.filter(e => String(e.installment) === String(exportInstallment.number));
                         await generatePDF({
-                          reportType,
-                          reportName: getReportName(reportType, reportYear),
+                          reportType: exportReportType,
+                          reportName: getReportName(exportReportType, reportYear),
                           entries: filteredEntries,
-                          budget: currentBudget,
+                          budget: exportBudget,
                           presidentInfo,
                           installmentInfo: {
                             number: exportInstallment.number,
