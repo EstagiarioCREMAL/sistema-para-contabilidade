@@ -268,7 +268,19 @@ export default function ValidReportView() {
           
           <button 
             className={`btn ${isFinalized ? 'btn-outline' : 'btn-primary'}`}
-            onClick={() => toggleReportLock('valid')}
+            onClick={async () => {
+              if (isFinalized) {
+                if (await askConfirmation('Reabrir Relatório VALID', 'Deseja reabrir este relatório para edições?')) {
+                  toggleReportLock('valid');
+                  addToast('Relatório VALID reaberto para edições.', 'info');
+                }
+              } else {
+                if (await askConfirmation('Finalizar Relatório VALID', 'Deseja finalizar este relatório? Isso bloqueará novas edições.')) {
+                  toggleReportLock('valid');
+                  addToast('Relatório VALID finalizado e bloqueado.', 'success');
+                }
+              }
+            }}
           >
             <Lock size={18} />
             {isFinalized ? 'Desbloquear Relatório' : 'Finalizar Relatório'}

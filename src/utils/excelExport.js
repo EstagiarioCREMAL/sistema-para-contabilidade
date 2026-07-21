@@ -25,7 +25,7 @@ export const getLogoBuffer = async () => {
       console.warn('Could not load logo for Excel');
       resolve(null);
     };
-    img.src = './logo.jpg';
+    img.src = '/logo.jpg'; // absolute path works in both web (Vercel) and Electron
   });
 };
 

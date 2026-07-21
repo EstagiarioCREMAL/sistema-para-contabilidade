@@ -33,6 +33,26 @@ export default function Settings() {
 
   const [isSavingBudget, setIsSavingBudget] = useState(false);
 
+  // Local president state — only persisted to Firestore when user clicks "Salvar Presidente"
+  const [localPresident, setLocalPresident] = useState(presidentInfo);
+  const [isSavingPresident, setIsSavingPresident] = useState(false);
+
+  // Keep in sync if presidentInfo changes externally (e.g., initial cloud load)
+  React.useEffect(() => {
+    setLocalPresident(presidentInfo);
+  }, [presidentInfo]);
+
+  const handleSavePresident = async () => {
+    setIsSavingPresident(true);
+    try {
+      await setPresidentInfo(localPresident);
+      addToast('Assinatura salva com sucesso!', 'success');
+    } catch {
+      addToast('Erro ao salvar assinatura.', 'danger');
+    }
+    setIsSavingPresident(false);
+  };
+
   const handleSaveBudgets = async () => {
     setIsSavingBudget(true);
     try {
@@ -89,8 +109,7 @@ export default function Settings() {
   };
 
   const handlePresidentChange = (e) => {
-    const updated = { ...presidentInfo, [e.target.name]: e.target.value };
-    setPresidentInfo(updated);
+    setLocalPresident(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   return (
@@ -113,7 +132,7 @@ export default function Settings() {
               <input
                 type="text"
                 name="name"
-                value={presidentInfo.name}
+                value={localPresident.name}
                 onChange={handlePresidentChange}
                 placeholder="Ex: Consº Benício Luiz Bulhões Barros Paula Nunes"
               />
@@ -123,12 +142,21 @@ export default function Settings() {
               <input
                 type="text"
                 name="role"
-                value={presidentInfo.role}
+                value={localPresident.role}
                 onChange={handlePresidentChange}
                 placeholder="Ex: Presidente"
               />
             </div>
           </div>
+          <button
+            className="btn btn-accent"
+            style={{ marginTop: '1rem' }}
+            onClick={handleSavePresident}
+            disabled={isSavingPresident}
+          >
+            <Save size={16} />
+            {isSavingPresident ? 'Salvando...' : 'Salvar Presidente'}
+          </button>
         </div>
 
         <div className="card glass-panel">

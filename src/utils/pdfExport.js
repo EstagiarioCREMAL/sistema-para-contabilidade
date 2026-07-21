@@ -80,7 +80,7 @@ export const generatePDF = async ({ reportType, reportName, entries, budget, pre
   // 1. Logo Box
   doc.rect(headerX, currentY, tableWidth, 90);
   try {
-    const logoData = await getBase64ImageFromUrl('./logo.jpg');
+    const logoData = await getBase64ImageFromUrl('/logo.jpg'); // absolute path works in both Vercel and Electron
     const bannerWidth = 350;
     const bannerHeight = 80;
     const xCenter = (841.89 - bannerWidth) / 2;
@@ -118,7 +118,7 @@ export const generatePDF = async ({ reportType, reportName, entries, budget, pre
         { content: 'ORIGEM DO RECURSO:', colSpan: 3, styles: { halign: 'left', fillColor: [240, 240, 240], lineWidth: 1 } },
         { content: 'CONSELHO FEDERAL DE MEDICINA', colSpan: 4, styles: { halign: 'center', fillColor: [240, 240, 240], lineWidth: 1 } }
       ],
-      ['PROCESSO / ITEM', 'DATA', 'NOME DO BENEFICIÁRIO', 'FINALIDADE', 'PARCELA', 'VALOR', budgetValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })]
+      ['PROCESSO / ITEM', 'DATA', 'NOME DO BENEFICIÁRIO', 'FINALIDADE', 'PARCELA', 'VALOR', 'SALDO']
     ],
     body: tableData,
     theme: 'grid',

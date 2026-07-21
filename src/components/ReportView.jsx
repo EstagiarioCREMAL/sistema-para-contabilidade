@@ -5,6 +5,13 @@ import { formatCurrency, formatDate } from '../utils/formatters';
 import { generatePDF } from '../utils/pdfExport';
 import { generateExcel, generateMasterExcel, importAndFormatExcel } from '../utils/excelExport';
 
+// Module-level constant — defined once, not recreated on each render
+const REPORT_LABEL = {
+  [REPORT_TYPES.FISCALIZACAO]: 'Fiscalização',
+  [REPORT_TYPES.EDUCACAO]: 'Educação Médica',
+  [REPORT_TYPES.COTA]: 'Cota Parte'
+};
+
 export default function ReportView({ reportType }) {
   const { entries, addEntry, updateEntry, deleteEntry, clearEntriesByType, budgets, presidentInfo, reportYear, finalizedReports, toggleReportLock, addToast, askConfirmation } = useAppContext();
   
@@ -339,13 +346,6 @@ export default function ReportView({ reportType }) {
 
   // Column count for footer colSpan (7 cols without actions, 8 with)
   const totalCols = isLocked ? 7 : 8;
-
-  // Labels for the report type selector
-  const REPORT_LABEL = {
-    [REPORT_TYPES.FISCALIZACAO]: 'Fiscalização',
-    [REPORT_TYPES.EDUCACAO]: 'Educação Médica',
-    [REPORT_TYPES.COTA]: 'Cota Parte'
-  };
 
   // Entries + budget for the currently selected export type
   const exportBudget = budgets[exportReportType];

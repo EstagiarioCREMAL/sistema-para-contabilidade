@@ -34,7 +34,9 @@ export default function Sidebar({ activeTab, setActiveTab }) {
   } = useAppContext();
 
   const [theme, setTheme] = useLocalStorage('cremal_theme', 'light');
-  const years = [2024, 2025, 2026];
+  // Dynamic years: from 2024 up to next calendar year
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: (currentYear + 1) - 2024 + 1 }, (_, i) => 2024 + i);
   
   const isLocked = (type) => finalizedReports.includes(type);
 
@@ -212,7 +214,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
         </button>
         
         <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', marginTop: '1rem', textAlign: 'center' }}>
-          Sistema Gerador de PDF v1.1
+          CREMAL Contábil v1.0.1
         </div>
       </div>
     </aside>
