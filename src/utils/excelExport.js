@@ -186,7 +186,7 @@ export const generateMasterExcel = async ({ entries, budgets, getReportName, pre
  * Helper to add a formatted report worksheet to an existing workbook.
  */
 const addReportSheet = async ({ workbook, reportType, entries, budget, includeObservations = true, customSheetName = null, installmentInfo = null, presidentInfo }) => {
-  const defaultSheetName = reportType === 'fiscalizacao' ? 'Fiscalização' : reportType === 'educacao' ? 'Ed. Médica' : 'Cota Parte';
+  const defaultSheetName = reportType === 'fiscalizacao' ? 'Fiscalização' : reportType === 'educacao' ? 'Ed. Médica' : 'Relatório Geral';
   const sheet = workbook.addWorksheet(customSheetName || defaultSheetName, {
     pageSetup: {
       paperSize: 9, // A4
@@ -214,7 +214,11 @@ const addReportSheet = async ({ workbook, reportType, entries, budget, includeOb
 
   const totalCols = columns.length;
 
-  const activeEntries = entries.filter(e => e.reportType === reportType).sort((a, b) => {
+  const activeEntries = entries.filter(e => {
+    return (reportType === 'cota' || reportType === 'geral')
+      ? (e.reportType === 'fiscalizacao' || e.reportType === 'educacao' || e.reportType === 'cota')
+      : e.reportType === reportType;
+  }).sort((a, b) => {
     // 0. Sort by Item Index (manual order)
     const idxA = parseInt(a.itemIndex) || 0;
     const idxB = parseInt(b.itemIndex) || 0;
@@ -470,7 +474,7 @@ export const importAndFormatExcel = async (file, reportYear = 2025, forcedInstal
     const n = name.toUpperCase();
     if (n.includes('FISCAL')) return 'fiscalizacao';
     if (n.includes('EDUCA') || n.includes('ED. MEDICA')) return 'educacao';
-    if (n.includes('COTA') || n.includes('OUTROS') || n.includes('PROJETO')) return 'cota';
+    if (n.includes('COTA') || n.includes('OUTROS') || n.includes('PROJETO') || n.includes('GERAL')) return 'cota';
     return null;
   };
 

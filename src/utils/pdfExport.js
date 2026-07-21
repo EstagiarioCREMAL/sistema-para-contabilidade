@@ -33,7 +33,9 @@ export const generatePDF = async ({ reportType, reportName, entries, budget, pre
 
   // Calculate fields and filter by year + skip ghost entries (no date, no value, no process)
   const activeEntries = entries.filter(e => {
-    const isRightType = e.reportType === reportType;
+    const isRightType = (reportType === 'cota' || reportType === 'geral')
+      ? (e.reportType === 'fiscalizacao' || e.reportType === 'educacao' || e.reportType === 'cota')
+      : e.reportType === reportType;
     const entryDate = new Date(e.date);
     const isRightYear = entryDate.getUTCFullYear() === reportYear;
     

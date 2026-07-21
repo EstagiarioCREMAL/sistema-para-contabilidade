@@ -162,7 +162,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
           onClick={() => setActiveTab(REPORT_TYPES.COTA)}
         >
           <PieChart size={20} />
-          <span style={{ flex: 1 }}>Cota Parte {reportYear}</span>
+          <span style={{ flex: 1 }}>Relatório Geral {reportYear}</span>
           {isLocked(REPORT_TYPES.COTA) && <LockIcon size={14} style={{ opacity: 0.8 }} />}
         </button>
         <button 

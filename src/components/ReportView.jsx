@@ -9,7 +9,7 @@ import { generateExcel, generateMasterExcel, importAndFormatExcel } from '../uti
 const REPORT_LABEL = {
   [REPORT_TYPES.FISCALIZACAO]: 'Fiscalização',
   [REPORT_TYPES.EDUCACAO]: 'Educação Médica',
-  [REPORT_TYPES.COTA]: 'Cota Parte'
+  [REPORT_TYPES.COTA]: 'Relatório Geral'
 };
 
 export default function ReportView({ reportType }) {
@@ -56,10 +56,13 @@ export default function ReportView({ reportType }) {
 
   const fileInputRef = useRef(null);
 
-  // Filter entries by type AND year
+  // Filter entries by type AND year (for Relatório Geral, include all 3 categories)
   const yearFilteredEntries = entries.filter(e => {
     const entryDate = new Date(e.date);
-    return e.reportType === reportType && entryDate.getUTCFullYear() === reportYear;
+    const isRightType = reportType === REPORT_TYPES.COTA
+      ? (e.reportType === 'fiscalizacao' || e.reportType === 'educacao' || e.reportType === 'cota')
+      : e.reportType === reportType;
+    return isRightType && entryDate.getUTCFullYear() === reportYear;
   });
 
   const currentEntries = yearFilteredEntries.filter(e => {
@@ -75,7 +78,9 @@ export default function ReportView({ reportType }) {
 
     return matchesSearch && matchesMonth && matchesValue;
   });
-  const currentBudget = budgets[reportType];
+  const currentBudget = reportType === REPORT_TYPES.COTA
+    ? ((budgets.fiscalizacao || 0) + (budgets.educacao || 0) + (budgets.cota || 0))
+    : (budgets[reportType] || 0);
 
   let currentBalance = currentBudget;
   const sortedEntries = [...currentEntries].sort((a, b) => {
@@ -348,10 +353,16 @@ export default function ReportView({ reportType }) {
   const totalCols = isLocked ? 7 : 8;
 
   // Entries + budget for the currently selected export type
-  const exportBudget = budgets[exportReportType];
+  const exportBudget = exportReportType === REPORT_TYPES.COTA
+    ? ((budgets.fiscalizacao || 0) + (budgets.educacao || 0) + (budgets.cota || 0))
+    : (budgets[exportReportType] || 0);
+
   const exportEntriesForModal = entries.filter(e => {
     const entryDate = new Date(e.date);
-    return e.reportType === exportReportType && entryDate.getUTCFullYear() === reportYear;
+    const isRightType = exportReportType === REPORT_TYPES.COTA
+      ? (e.reportType === 'fiscalizacao' || e.reportType === 'educacao' || e.reportType === 'cota')
+      : e.reportType === exportReportType;
+    return isRightType && entryDate.getUTCFullYear() === reportYear;
   });
 
   return (

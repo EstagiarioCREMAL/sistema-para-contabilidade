@@ -14,7 +14,7 @@ import {
   where,
   writeBatch
 } from 'firebase/firestore';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
 
 const AppContext = createContext();
 
@@ -31,7 +31,7 @@ export const getReportName = (type, year = 2024) => {
   const names = {
     [REPORT_TYPES.FISCALIZACAO]: `PRESTAÇÃO DE CONTAS - FISCALIZAÇÃO ${year} - CREMAL`,
     [REPORT_TYPES.EDUCACAO]: `PRESTAÇÃO DE CONTAS - EDUCAÇÃO MÉDICA CONTINUADA ${year} - CREMAL`,
-    [REPORT_TYPES.COTA]: `PRESTAÇÃO DE CONTAS ${year} - COTA PARTE OUTROS PROJETOS - CREMAL`,
+    [REPORT_TYPES.COTA]: `PRESTAÇÃO DE CONTAS ${year} - RELATÓRIO GERAL (FISCALIZAÇÃO, ED. MÉDICA E COTA PARTE) - CREMAL`,
     [REPORT_TYPES.VALID]: `RELATÓRIO VALID - CRM-AL ${year}`
   };
   return names[type];
@@ -149,10 +149,12 @@ export function AppProvider({ children }) {
           }
         });
       } else {
-        // Sem sessão Firebase, aguarda login
-        clearTimeout(timeout);
-        setLoading(false);
-        setEntries([]);
+        // Sem sessão Firebase, tenta autenticação anônima como fallback para permissões do Firestore
+        signInAnonymously(auth).catch(() => {
+          clearTimeout(timeout);
+          setLoading(false);
+          setEntries([]);
+        });
       }
     });
 

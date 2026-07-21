@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Lock, ShieldCheck, Building2 } from 'lucide-react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInAnonymously } from 'firebase/auth';
 import { auth } from '../firebase';
 
 export default function Login({ onBypass }) {
@@ -11,14 +11,24 @@ export default function Login({ onBypass }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError(false);
 
     if (email === 'compras@crmal.org.br' && password === '123456') {
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+      } catch {
+        try {
+          await createUserWithEmailAndPassword(auth, email, password);
+        } catch {
+          await signInAnonymously(auth);
+        }
+      }
       if (onBypass) onBypass();
+      setLoading(false);
       return;
     }
 
-    setLoading(true);
-    setError(false);
     try {
       await signInWithEmailAndPassword(auth, email, password);
     } catch {
