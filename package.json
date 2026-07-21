@@ -1,7 +1,7 @@
 {
   "name": "sistema-para-contabilidade",
   "private": true,
-  "version": "1.0.3",
+  "version": "1.0.4",
   "main": "electron/main.cjs",
   "type": "module",
   "scripts": {
@@ -64,7 +64,10 @@
     "nsis": {
       "artifactName": "Instalador-CremalContabil.exe",
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "CremalContabil"
     }
   }
 }
