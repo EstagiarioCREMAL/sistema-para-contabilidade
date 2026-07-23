@@ -11,6 +11,7 @@ import ConfirmDialog from './components/ConfirmDialog';
 import Login from './components/Login';
 import HelpGuide from './components/HelpGuide';
 import ErrorBoundary from './components/ErrorBoundary';
+import UpdateNotifier from './components/UpdateNotifier';
 import { REPORT_TYPES } from './context/AppContext';
 
 function App() {
@@ -58,6 +59,7 @@ function App() {
         <ToastContainer />
         <ConfirmDialog />
         <HelpGuide />
+        <UpdateNotifier />
       </div>
     </ErrorBoundary>
   );
