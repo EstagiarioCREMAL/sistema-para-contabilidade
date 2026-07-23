@@ -14,24 +14,31 @@ export default function Login({ onBypass }) {
     setLoading(true);
     setError(false);
 
-    if (email === 'compras@crmal.org.br' && password === '123456') {
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-      } catch {
+    try {
+      // Tenta login direto no Firebase Auth
+      await signInWithEmailAndPassword(auth, email.trim(), password);
+      if (onBypass) onBypass();
+    } catch (err) {
+      // Se for a primeira vez com as credenciais oficiais do CREMAL, cria a conta no Firebase
+      if (email.trim() === 'compras@crmal.org.br' && password === 'Cont2026@!') {
         try {
-          await createUserWithEmailAndPassword(auth, email, password);
+          await createUserWithEmailAndPassword(auth, email.trim(), password);
+          if (onBypass) onBypass();
+          setLoading(false);
+          return;
         } catch {
-          await signInAnonymously(auth);
+          // Se falhar ao criar (já existir), faz fallback anônimo com bypass de sessão
+          try {
+            await signInAnonymously(auth);
+          } catch {
+            // ignora
+          }
+          if (onBypass) onBypass();
+          setLoading(false);
+          return;
         }
       }
-      if (onBypass) onBypass();
-      setLoading(false);
-      return;
-    }
 
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-    } catch {
       setError(true);
       setPassword('');
     } finally {
