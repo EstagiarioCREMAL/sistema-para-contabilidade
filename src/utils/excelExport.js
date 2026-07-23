@@ -147,7 +147,7 @@ export const generateMasterExcel = async ({ entries, budgets, getReportName, pre
   workbook.creator = 'CREMAL Sistema Contábil';
   workbook.created = new Date();
 
-  const reportTypes = ['fiscalizacao', 'educacao', 'cota'];
+  const reportTypes = ['fiscalizacao', 'educacao', 'cota', 'jeton'];
   
   for (const type of reportTypes) {
     const typeEntries = entries.filter(e => {
@@ -186,7 +186,7 @@ export const generateMasterExcel = async ({ entries, budgets, getReportName, pre
  * Helper to add a formatted report worksheet to an existing workbook.
  */
 const addReportSheet = async ({ workbook, reportType, entries, budget, includeObservations = true, customSheetName = null, installmentInfo = null, presidentInfo }) => {
-  const defaultSheetName = reportType === 'fiscalizacao' ? 'Fiscalização' : reportType === 'educacao' ? 'Ed. Médica' : 'Relatório Geral';
+  const defaultSheetName = reportType === 'fiscalizacao' ? 'Fiscalização' : reportType === 'educacao' ? 'Ed. Médica' : reportType === 'jeton' ? 'Jeton (Viagens)' : 'Relatório Geral';
   const sheet = workbook.addWorksheet(customSheetName || defaultSheetName, {
     pageSetup: {
       paperSize: 9, // A4
@@ -467,13 +467,15 @@ export const importAndFormatExcel = async (file, reportYear = 2025, forcedInstal
     fiscalizacao: [],
     educacao: [],
     cota: [],
-    valid: []
+    valid: [],
+    jeton: []
   };
 
   const getTargetType = (name) => {
     const n = name.toUpperCase();
     if (n.includes('FISCAL')) return 'fiscalizacao';
     if (n.includes('EDUCA') || n.includes('ED. MEDICA')) return 'educacao';
+    if (n.includes('JETON') || n.includes('VIAGEM') || n.includes('VIAGENS')) return 'jeton';
     if (n.includes('COTA') || n.includes('OUTROS') || n.includes('PROJETO') || n.includes('GERAL')) return 'cota';
     return null;
   };

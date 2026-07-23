@@ -221,7 +221,7 @@ export const generatePDF = async ({ reportType, reportName, entries, budget, pre
   }
 
   // Save the PDF
-  const cleanName = reportType === 'fiscalizacao' ? 'fiscalizacao' : reportType === 'educacao' ? 'educacao_medica' : 'cota_parte';
+  const cleanName = reportType === 'fiscalizacao' ? 'fiscalizacao' : reportType === 'educacao' ? 'educacao_medica' : reportType === 'jeton' ? 'jeton_viagens' : 'cota_parte';
   const installmentStr = installmentInfo ? `_parcela_${installmentInfo.number}` : `_${new Date().getTime()}`;
   doc.save(`prestacao_${cleanName}${installmentStr}.pdf`);
 };

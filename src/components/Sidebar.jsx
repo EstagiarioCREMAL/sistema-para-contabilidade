@@ -16,7 +16,8 @@ import {
   LogOut,
   ClipboardList,
   Loader2,
-  HelpCircle
+  HelpCircle,
+  Plane
 } from 'lucide-react';
 
 export default function Sidebar({ activeTab, setActiveTab }) {
@@ -172,6 +173,14 @@ export default function Sidebar({ activeTab, setActiveTab }) {
           <ClipboardList size={20} />
           <span style={{ flex: 1 }}>Relatório VALID {reportYear}</span>
           {isLocked(REPORT_TYPES.VALID) && <LockIcon size={14} style={{ opacity: 0.8 }} />}
+        </button>
+        <button 
+          className={`nav-item ${activeTab === REPORT_TYPES.JETON ? 'active' : ''}`}
+          onClick={() => setActiveTab(REPORT_TYPES.JETON)}
+        >
+          <Plane size={20} />
+          <span style={{ flex: 1 }}>Jeton (Viagens) {reportYear}</span>
+          {isLocked(REPORT_TYPES.JETON) && <LockIcon size={14} style={{ opacity: 0.8 }} />}
         </button>
 
         <p style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'rgba(255,255,255,0.5)', marginTop: '2rem', marginBottom: '0.5rem', paddingLeft: '1rem' }}>

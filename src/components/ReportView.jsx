@@ -9,7 +9,8 @@ import { generateExcel, generateMasterExcel, importAndFormatExcel } from '../uti
 const REPORT_LABEL = {
   [REPORT_TYPES.FISCALIZACAO]: 'Fiscalização',
   [REPORT_TYPES.EDUCACAO]: 'Educação Médica',
-  [REPORT_TYPES.COTA]: 'Relatório Geral'
+  [REPORT_TYPES.COTA]: 'Relatório Geral',
+  [REPORT_TYPES.JETON]: 'Jeton (Viagens)'
 };
 
 export default function ReportView({ reportType }) {
@@ -303,7 +304,7 @@ export default function ReportView({ reportType }) {
       const typesFound = Object.keys(results).filter(type => results[type].length > 0);
       
       if (typesFound.length === 0) {
-        throw new Error('Nenhum dado compatível encontrado nas abas da planilha. Verifique se os nomes das abas incluem "Fiscal", "Educação" ou "Outros".');
+        throw new Error('Nenhum dado compatível encontrado nas abas da planilha. Verifique se os nomes das abas incluem "Fiscal", "Educação", "Jeton" ou "Outros".');
       }
 
       // 2. Check if ANY of the found types already have data in the system
@@ -312,7 +313,7 @@ export default function ReportView({ reportType }) {
       });
 
       if (existingTypesWithData.length > 0) {
-        const typeNames = existingTypesWithData.map(t => t === 'fiscalizacao' ? 'Fiscalização' : t === 'educacao' ? 'Ed. Médica' : t === 'cota' ? 'Cota Parte' : t).join(', ');
+        const typeNames = existingTypesWithData.map(t => t === 'fiscalizacao' ? 'Fiscalização' : t === 'educacao' ? 'Ed. Médica' : t === 'cota' ? 'Cota Parte' : t === 'jeton' ? 'Jeton (Viagens)' : t).join(', ');
         const shouldClear = await askConfirmation(
           'Limpar Dados Existentes?', 
           `Foram detectados dados para: ${typeNames}. Já existem lançamentos nestes relatórios. Deseja APAGAR os dados atuais deles antes de importar os novos para evitar duplicidade?`
@@ -409,7 +410,7 @@ export default function ReportView({ reportType }) {
               </div>
             </button>
             <p className="recommended-desc">
-              Contém Fiscalização, Ed. Médica e Cota Parte em abas separadas.
+              Contém Fiscalização, Ed. Médica, Cota Parte e Jeton em abas separadas.
             </p>
           </div>
 
@@ -992,7 +993,7 @@ export default function ReportView({ reportType }) {
                   <FileSpreadsheet size={20} /> Baixar Relatório Mestre (Tudo em 1 Arquivo)
                 </button>
                 <p style={{ fontSize: '0.75rem', marginTop: '0.5rem', color: 'var(--text-secondary)' }}>
-                  Contém Fiscalização, Ed. Médica e Cota Parte em abas separadas.
+                  Contém Fiscalização, Ed. Médica, Cota Parte e Jeton em abas separadas.
                 </p>
               </div>
 
@@ -1006,6 +1007,7 @@ export default function ReportView({ reportType }) {
                   <option value={REPORT_TYPES.FISCALIZACAO}>Fiscalização</option>
                   <option value={REPORT_TYPES.EDUCACAO}>Educação Médica</option>
                   <option value={REPORT_TYPES.COTA}>Cota Parte</option>
+                  <option value={REPORT_TYPES.JETON}>Jeton (Viagens)</option>
                 </select>
                 <button 
                   className="btn btn-outline" 
@@ -1014,7 +1016,7 @@ export default function ReportView({ reportType }) {
                     addToast('Gerando Relatório...');
                     await new Promise(r => setTimeout(r, 50)); // Allow UI to update
                     try {
-                      const cleanName = exportReportType === 'fiscalizacao' ? 'fiscalização' : exportReportType === 'educacao' ? 'educação_médica' : 'cota_parte';
+                      const cleanName = exportReportType === 'fiscalizacao' ? 'fiscalização' : exportReportType === 'educacao' ? 'educação_médica' : exportReportType === 'jeton' ? 'jeton_viagens' : 'cota_parte';
                       await generateExcel({
                         reportType: exportReportType,
                         reportName: getReportName(exportReportType, reportYear),
@@ -1032,7 +1034,7 @@ export default function ReportView({ reportType }) {
                     }
                   }}
                 >
-                  Baixar {exportReportType === 'fiscalizacao' ? 'Fiscalização' : exportReportType === 'educacao' ? 'Educação Médica' : 'Cota Parte'}
+                  Baixar {exportReportType === 'fiscalizacao' ? 'Fiscalização' : exportReportType === 'educacao' ? 'Educação Médica' : exportReportType === 'jeton' ? 'Jeton (Viagens)' : 'Cota Parte'}
                 </button>
               </div>
 
@@ -1073,7 +1075,7 @@ export default function ReportView({ reportType }) {
                       await new Promise(r => setTimeout(r, 50)); // Allow UI to update
                       try {
                         const filteredEntries = exportEntriesForModal.filter(e => String(e.installment) === String(exportInstallment.number));
-                        const cleanName = exportReportType === 'fiscalizacao' ? 'fiscalização' : exportReportType === 'educacao' ? 'educação_médica' : 'cota_parte';
+                        const cleanName = exportReportType === 'fiscalizacao' ? 'fiscalização' : exportReportType === 'educacao' ? 'educação_médica' : exportReportType === 'jeton' ? 'jeton_viagens' : 'cota_parte';
                         await generateExcel({
                           reportType: exportReportType,
                           reportName: getReportName(exportReportType, reportYear),

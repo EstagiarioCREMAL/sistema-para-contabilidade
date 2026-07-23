@@ -23,7 +23,8 @@ export const REPORT_TYPES = {
   FISCALIZACAO: 'fiscalizacao',
   EDUCACAO: 'educacao',
   COTA: 'cota',
-  VALID: 'valid'
+  VALID: 'valid',
+  JETON: 'jeton'
 };
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -32,7 +33,8 @@ export const getReportName = (type, year = 2024) => {
     [REPORT_TYPES.FISCALIZACAO]: `PRESTAÇÃO DE CONTAS - FISCALIZAÇÃO ${year} - CREMAL`,
     [REPORT_TYPES.EDUCACAO]: `PRESTAÇÃO DE CONTAS - EDUCAÇÃO MÉDICA CONTINUADA ${year} - CREMAL`,
     [REPORT_TYPES.COTA]: `PRESTAÇÃO DE CONTAS ${year} - RELATÓRIO GERAL (FISCALIZAÇÃO, ED. MÉDICA E COTA PARTE) - CREMAL`,
-    [REPORT_TYPES.VALID]: `RELATÓRIO VALID - CRM-AL ${year}`
+    [REPORT_TYPES.VALID]: `RELATÓRIO VALID - CRM-AL ${year}`,
+    [REPORT_TYPES.JETON]: `PRESTAÇÃO DE CONTAS - JETON (VIAGENS) ${year} - CREMAL`
   };
   return names[type];
 };
@@ -43,12 +45,14 @@ export function AppProvider({ children }) {
     "2024": {
       [REPORT_TYPES.FISCALIZACAO]: 316325.70,
       [REPORT_TYPES.EDUCACAO]: 75000.00,
-      [REPORT_TYPES.COTA]: 223471.55
+      [REPORT_TYPES.COTA]: 223471.55,
+      [REPORT_TYPES.JETON]: 0
     },
     "2025": {
       [REPORT_TYPES.FISCALIZACAO]: 320000.00,
       [REPORT_TYPES.EDUCACAO]: 80000.00,
-      [REPORT_TYPES.COTA]: 250000.00
+      [REPORT_TYPES.COTA]: 250000.00,
+      [REPORT_TYPES.JETON]: 0
     }
   });
   
@@ -210,7 +214,8 @@ export function AppProvider({ children }) {
   const currentBudgets = allBudgets[reportYear] || {
     [REPORT_TYPES.FISCALIZACAO]: 0,
     [REPORT_TYPES.EDUCACAO]: 0,
-    [REPORT_TYPES.COTA]: 0
+    [REPORT_TYPES.COTA]: 0,
+    [REPORT_TYPES.JETON]: 0
   };
   
   const currentFinalized = allFinalized[reportYear] || [];
@@ -306,7 +311,8 @@ export function AppProvider({ children }) {
       ...(allBudgets[reportYear] || {
         [REPORT_TYPES.FISCALIZACAO]: 0,
         [REPORT_TYPES.EDUCACAO]: 0,
-        [REPORT_TYPES.COTA]: 0
+        [REPORT_TYPES.COTA]: 0,
+        [REPORT_TYPES.JETON]: 0
       }),
       [type]: value
     };

@@ -19,7 +19,8 @@ export default function Settings() {
   const [localBudget, setLocalBudget] = useState({
     fiscalizacao: budgets.fiscalizacao ?? 0,
     educacao: budgets.educacao ?? 0,
-    cota: budgets.cota ?? 0
+    cota: budgets.cota ?? 0,
+    jeton: budgets.jeton ?? 0
   });
 
   // Sync local budget if remote budget changes (e.g., initial load or different year selected)
@@ -27,7 +28,8 @@ export default function Settings() {
     setLocalBudget({
       fiscalizacao: budgets.fiscalizacao ?? 0,
       educacao: budgets.educacao ?? 0,
-      cota: budgets.cota ?? 0
+      cota: budgets.cota ?? 0,
+      jeton: budgets.jeton ?? 0
     });
   }, [budgets]);
 
@@ -59,7 +61,8 @@ export default function Settings() {
       await updateYearBudgets({
         fiscalizacao: parseFloat(localBudget.fiscalizacao) || 0,
         educacao: parseFloat(localBudget.educacao) || 0,
-        cota: parseFloat(localBudget.cota) || 0
+        cota: parseFloat(localBudget.cota) || 0,
+        jeton: parseFloat(localBudget.jeton) || 0
       });
       addToast('Orçamentos salvos com sucesso!', 'success');
     } catch {
@@ -187,6 +190,15 @@ export default function Settings() {
                 step="0.01"
                 value={localBudget.cota}
                 onChange={(e) => setLocalBudget(prev => ({ ...prev, cota: e.target.value }))}
+              />
+            </div>
+            <div className="form-group">
+              <label>Orçamento Jeton (Viagens) (R$)</label>
+              <input
+                type="number"
+                step="0.01"
+                value={localBudget.jeton}
+                onChange={(e) => setLocalBudget(prev => ({ ...prev, jeton: e.target.value }))}
               />
             </div>
           </div>
