@@ -496,12 +496,21 @@ export const importAndFormatExcel = async (file, reportYear = 2025, forcedInstal
 
     let colMap = { date: -1, beneficiary: -1, purpose: -1, process: -1, value: -1, unitValue: -1, qty: -1, installment: -1 };
     let lastValidDate = null;
+    let tableEnded = false;
 
     sheet.eachRow((row) => {
+      if (tableEnded) return; // Stop processing once bottom summary table is reached
+
       const rowValues = row.values.map(v => getCellValueAsString(v).toUpperCase());
       const cell1Str = rowValues[1] || '';
       const sheetNameUpper = sheet.name.toUpperCase();
       const rowText = rowValues.join(' ');
+
+      // Stop condition: if row mentions summary footers, the main expense table has ended
+      if (rowText.includes('TOTAL DE DESPESAS') || rowText.includes('DEVOLUÇÃO AO CONSELHO') || rowText.includes('DEVOLUCAO AO CONSELHO')) {
+        tableEnded = true;
+        return;
+      }
       
       // 1. Installment Detection (Dynamic - can change mid-sheet)
       // We only update detection on "Title-like" rows to avoid data-row interference
@@ -600,48 +609,41 @@ export const importAndFormatExcel = async (file, reportYear = 2025, forcedInstal
         lastValidDate = parsedDateStr;
       }
       
-      const effectiveDateStr = parsedDateStr || lastValidDate;
+      // Use parsed date if available, or last valid date ONLY if row has processNumber or non-empty beneficiary/purpose
+      const effectiveDateStr = parsedDateStr || (lastValidDate && (processVal || beneficiary.trim() || purpose.trim()) ? lastValidDate : null);
 
       if (effectiveDateStr && (beneficiary.trim().length > 0 || purpose.trim().length > 0)) {
           let parsedValue = 0;
           
-          
           // Helper to parse currency from cell value
           const parseCur = (v) => {
-            if (typeof v === 'number') return v > 1000000 ? 0 : v; // Reject large IDs (max 1M)
+            if (typeof v === 'number') return v > 1000000 ? 0 : v;
             const s = getCellValueAsString({ value: v, isMerged: false }).trim();
             if (!s) return 0;
-            // Strict regex: must look like a standalone currency or number
-            // (e.g., optional R$, optional sign, digits with dots/commas)
-            // It MUST NOT match if it's followed by letters (preventing "0,5 diaria")
             const strictMatch = s.match(/^\s*(?:R\$)?\s*[-+]?\s*([\d.,]+)\s*$/);
             if (!strictMatch) return 0;
             const clean = strictMatch[1].replace(/\./g, '').replace(',', '.');
             const res = parseFloat(clean);
             if (isNaN(res)) return 0;
-            return res > 1000000 ? 0 : res; // Reject large IDs parsed from strings
+            return res > 1000000 ? 0 : res;
           };
 
           parsedValue = parseCur(valueRawOuter);
           
           // Smart Fallback: If primary column is empty, check neighbors (some accountant reports shift columns)
           if (parsedValue === 0) {
-            // Check Column 7 (G) specifically as it often contains the Value in accountant reports
             const col7Val = row.getCell(7).value;
             const p7 = parseCur(col7Val);
             if (p7 > 0) {
               parsedValue = p7;
             } else {
-              // Limited neighbor search
               for (let offset of [-1, 1]) {
                 const targetCol = colVal + offset;
-                // Don't pick values from columns we know are other data
                 if (targetCol === colPro || targetCol === colDate || targetCol === colBen || targetCol === colPur) continue;
                 if (targetCol < 1 || targetCol > 20) continue;
                 
                 const neighborVal = row.getCell(targetCol).value;
                 const p = parseCur(neighborVal);
-                // Extra safety: only pick up as fallback if it looks like a real currency (usually has decimals or > 10)
                 if (p > 10 || (p > 0 && String(neighborVal).includes(','))) {
                   parsedValue = p;
                   break;
@@ -650,17 +652,12 @@ export const importAndFormatExcel = async (file, reportYear = 2025, forcedInstal
             }
           }
           
-          // We removed the zero-value skip because the user wants to see the items 
-          // in both installments even if the value is zero in one of them.
-          // HOWEVER, we should skip rows that are completely empty of metadata (no date, no value, no process)
-          // as these are usually redundant headers or merged cell leftovers.
           if (parsedValue === 0 && !parsedDateStr && !processVal) {
             return;
           }
 
           const instVal = colMap.installment !== -1 ? getCellValueAsString(row.getCell(colMap.installment).value) : '';
           
-          // Safety logic: installment should be short (e.g., "1", "2"). If long text detected, it's a mapping error (like purpose).
           let finalInstallment = forcedInstallment || instVal || detectedInstallment || '';
           if (finalInstallment.length > 5) {
             finalInstallment = forcedInstallment || detectedInstallment || '';
