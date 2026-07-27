@@ -3,30 +3,14 @@ import { saveAs } from 'file-saver';
 import { format } from 'date-fns';
 
 import { formatCurrency, formatDate } from './formatters';
-import logoImg from '../assets/Logo CREMAL.jpg';
+import { CREMAL_LOGO_BASE64 } from '../assets/logoBase64';
 
 /**
- * Fetches logo from imported asset and returns base64 for ExcelJS.
+ * Returns static Base64 logo for ExcelJS.
  */
 export const getLogoBuffer = async () => {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0);
-      const dataURL = canvas.toDataURL('image/jpeg');
-      const base64 = dataURL.replace(/^data:image\/jpeg;base64,/, "");
-      resolve({ base64, extension: 'jpeg' });
-    };
-    img.onerror = () => {
-      console.warn('Could not load logo for Excel');
-      resolve(null);
-    };
-    img.src = logoImg;
-  });
+  const base64 = CREMAL_LOGO_BASE64.replace(/^data:image\/jpeg;base64,/, "");
+  return { base64, extension: 'jpeg' };
 };
 
 /**

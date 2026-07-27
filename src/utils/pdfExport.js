@@ -3,28 +3,7 @@ import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
 
 import { formatCurrency, formatDate } from './formatters';
-import logoImg from '../assets/Logo CREMAL.jpg';
-
-const getBase64ImageFromUrl = (imageUrl = logoImg) => {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.crossOrigin = 'Anonymous';
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0);
-      const dataURL = canvas.toDataURL('image/jpeg');
-      resolve(dataURL);
-    };
-    img.onerror = (error) => {
-      console.warn('Could not load logo image for PDF', error);
-      resolve(null);
-    };
-    img.src = imageUrl;
-  });
-};
+import { CREMAL_LOGO_BASE64 } from '../assets/logoBase64';
 
 export const generatePDF = async ({ reportType, reportName, entries, budget, presidentInfo, installmentInfo, reportYear = 2025 }) => {
   const doc = new jsPDF({
@@ -97,13 +76,10 @@ export const generatePDF = async ({ reportType, reportName, entries, budget, pre
   // 1. Logo Box
   doc.rect(headerX, currentY, tableWidth, 90);
   try {
-    const logoData = await getBase64ImageFromUrl(logoImg);
-    if (logoData) {
-      const bannerWidth = 350;
-      const bannerHeight = 80;
-      const xCenter = (841.89 - bannerWidth) / 2;
-      doc.addImage(logoData, 'JPEG', xCenter, currentY + 5, bannerWidth, bannerHeight);
-    }
+    const bannerWidth = 350;
+    const bannerHeight = 80;
+    const xCenter = (841.89 - bannerWidth) / 2;
+    doc.addImage(CREMAL_LOGO_BASE64, 'JPEG', xCenter, currentY + 5, bannerWidth, bannerHeight);
   } catch (error) {
     console.error("Could not load logo image for PDF", error);
   }
