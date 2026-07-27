@@ -105,6 +105,17 @@ ipcMain.on('install-update', () => {
   autoUpdater.quitAndInstall(false, true);
 });
 
+// Fecha o app completamente
+ipcMain.on('quit-app', () => {
+  log.info('Usuário solicitou saída do sistema.');
+  app.quit();
+});
+
+// Retorna a versão atual do package.json
+ipcMain.on('get-version', (event) => {
+  event.returnValue = app.getVersion();
+});
+
 // ─── Ciclo de vida do app ────────────────────────────────────────────────────
 app.whenReady().then(createWindow);
 

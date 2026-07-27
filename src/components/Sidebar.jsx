@@ -52,7 +52,13 @@ export default function Sidebar({ activeTab, setActiveTab }) {
   const handleLogout = async () => {
     if (await askConfirmation('Sair do Sistema', 'Tem certeza que deseja sair da sua conta?')) {
       localStorage.removeItem('cremal_auth');
-      window.location.reload();
+      // Se estiver rodando no Electron, fecha o app completamente
+      if (window.electronUpdater && window.electronUpdater.quitApp) {
+        window.electronUpdater.quitApp();
+      } else {
+        // Fallback para web: recarrega a página (retorna à tela de login)
+        window.location.reload();
+      }
     }
   };
 
@@ -223,7 +229,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
         </button>
         
         <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', marginTop: '1rem', textAlign: 'center' }}>
-          CREMAL Contábil v1.0.1
+          CREMAL Contábil v{(window.electronUpdater && window.electronUpdater.getVersion) ? window.electronUpdater.getVersion() : '1.2.0'}
         </div>
       </div>
     </aside>

@@ -14,4 +14,10 @@ contextBridge.exposeInMainWorld('electronUpdater', {
 
   // Remove listeners ao desmontar o componente
   removeAllListeners: (channel) => ipcRenderer.removeAllListeners(channel),
+
+  // Fecha o aplicativo Electron completamente
+  quitApp: () => ipcRenderer.send('quit-app'),
+
+  // Retorna a versão atual do app
+  getVersion: () => ipcRenderer.sendSync('get-version'),
 });
