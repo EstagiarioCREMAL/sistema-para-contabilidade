@@ -485,10 +485,14 @@ export const importAndFormatExcel = async (file, reportYear = 2025, forcedInstal
     let currentValidCategory = null;
     let detectedInstallment = forcedInstallment;
 
-    // Try to detect installment from sheet name initially (e.g. 'FISCALIZAÇÃO 1' -> '1')
+    // Try to detect installment from sheet name initially (e.g. 'EDUCAÇÃO MEDICA 2°PACELA', 'FISCALIZAÇÃO 2ª PARCELA')
     if (detectedInstallment === null) {
       const sheetNameUpper = sheet.name.toUpperCase();
-      const sheetInstMatch = sheetNameUpper.match(/(\d+)\s*[ªº°OO]?[.\-\s]*PARCELA/i) || sheetNameUpper.match(/\s*(?:PARTE)?\s*(\d+)$/i);
+      const sheetInstMatch = 
+        sheetNameUpper.match(/(\d+)\s*[ªº°OO]?[.\-\s]*PA[R]*CELA/i) || 
+        sheetNameUpper.match(/PA[R]*CELA\s*(\d+)/i) ||
+        sheetNameUpper.match(/(\d+)\s*[ªº°OO]?[.\-\s]*PA[R]*TE/i) ||
+        sheetNameUpper.match(/\b([12])\s*[ªº°OO]?\b/);
       if (sheetInstMatch) {
         detectedInstallment = sheetInstMatch[1];
       }
@@ -519,13 +523,18 @@ export const importAndFormatExcel = async (file, reportYear = 2025, forcedInstal
       const rowHasDate = cellDateVal && (cellDateVal instanceof Date || String(cellDateVal).match(/\d+\s*[/\\-]\s*[a-z]/i));
 
       if (forcedInstallment === null && !rowHasDate) {
-        // Match patterns like "1ª PARCELA", "2º PARCELA", "CONVÊNIO... 2 PARCELA"
-        const instMatch = rowText.match(/(\d+)\s*[ªº°OO]?[.\-\s]*PARCELA/i);
+        // Match patterns like "1ª PARCELA", "2º PARCELA", "2°PACELA", "CONVÊNIO... 2 PARCELA"
+        const instMatch = 
+          rowText.match(/(\d+)\s*[ªº°OO]?[.\-\s]*PA[R]*CELA/i) || 
+          rowText.match(/PA[R]*CELA\s*(\d+)/i) ||
+          rowText.match(/(\d+)\s*[ªº°OO]?[.\-\s]*PA[R]*TE/i);
         if (instMatch) {
           detectedInstallment = instMatch[1];
         } else if (detectedInstallment === null) {
-          // Fallback to sheet name only if not already detected from text
-          const sheetMatch = sheetNameUpper.match(/(\d+)\s*[ªº°OO]?[.\-\s]*PARCELA/i) || sheetNameUpper.match(/\s*(?:PARTE)?\s*(\d+)$/i);
+          const sheetMatch = 
+            sheetNameUpper.match(/(\d+)\s*[ªº°OO]?[.\-\s]*PA[R]*CELA/i) || 
+            sheetNameUpper.match(/PA[R]*CELA\s*(\d+)/i) ||
+            sheetNameUpper.match(/\b([12])\s*[ªº°OO]?\b/);
           if (sheetMatch) detectedInstallment = sheetMatch[1];
         }
       }
