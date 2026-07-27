@@ -18,6 +18,12 @@ export const formatCurrency = (value) => {
 export const formatDate = (dateStr, includeYear = true) => {
   if (!dateStr) return '';
   try {
+    const cleanStr = String(dateStr).split('T')[0];
+    const parts = cleanStr.split('-');
+    if (parts.length === 3) {
+      const [year, month, day] = parts;
+      return includeYear ? `${day}/${month}/${year}` : `${day}/${month}`;
+    }
     return format(parseISO(dateStr), includeYear ? 'dd/MM/yyyy' : 'dd/MM');
   } catch {
     return dateStr;

@@ -11,9 +11,9 @@ param(
 
 $owner      = "EstagiarioCREMAL"
 $repo       = "sistema-para-contabilidade"
-$tag        = "v1.1.0"
-$releaseName = "v1.1.0 - JETON (Viagens) + Auto-Updater"
-$releaseBody = "## O que ha de novo nesta versao`n`n- **Nova aba JETON (Viagens)**: registre despesas de viagens como os outros relatorios`n- **Auto-updater**: o app agora verifica e instala atualizacoes automaticamente`n- Importacao e exportacao completas para o relatorio JETON`n- Correcoes gerais de bugs"
+$tag        = "v1.2.0"
+$releaseName = "v1.2.0 - Correção da 1ª Parcela, Ordenação e Auto-Updater"
+$releaseBody = "## O que ha de novo nesta versao`n`n- **Filtro e Isolamento da 1ª Parcela**: exibicao adequada sem estouro indevido do orcamento`n- **Correcao de Fusos Horarios em Datas**: datas como 21/07 nao sofrem deslocamento`n- **Ordenacao Padronizada**: sequencia identica na Tela, Excel e PDF`n- **Melhorias no Rodape**: indicacao clara de Devolucao ou Deficit`n- **Dashboard Ajustado**: indicador visual correto para saldos negativos"
 
 $releaseDir = Join-Path $PSScriptRoot "release"
 $headers = @{

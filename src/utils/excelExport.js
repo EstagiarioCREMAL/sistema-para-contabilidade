@@ -225,9 +225,9 @@ const addReportSheet = async ({ workbook, reportType, entries, budget, includeOb
     if (idxA !== idxB) return idxA - idxB;
 
     // 1. Sort by Installment
-    const instA = a.installment ? String(a.installment) : '';
-    const instB = b.installment ? String(b.installment) : '';
-    if (instA !== instB) return instA.localeCompare(instB, undefined, { numeric: true });
+    const instA = parseInt(a.installment) || 1;
+    const instB = parseInt(b.installment) || 1;
+    if (instA !== instB) return instA - instB;
     
     // 2. Sort by Process Number
     const procA = String(a.processNumber || '');
@@ -317,16 +317,17 @@ const addReportSheet = async ({ workbook, reportType, entries, budget, includeOb
   tV.alignment = { horizontal: 'right', vertical: 'middle' };
   tV.border = { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };
 
+  const devolucaoVal = finalBudgetValue - totalDespesas;
   const dRow = sheet.addRow([]);
   sheet.mergeCells(`A${dRow.number}:D${dRow.number}`);
   const dL = sheet.getCell(`A${dRow.number}`);
-  dL.value = 'DEVOLUÇÃO AO CFM:';
-  dL.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FFCC0000' } };
+  dL.value = devolucaoVal < 0 ? 'DÉFICIT / SALDO EXCEDENTE:' : 'DEVOLUÇÃO AO CFM:';
+  dL.font = { name: 'Arial', size: 10, bold: true, color: { argb: devolucaoVal < 0 ? 'FFCC0000' : 'FF008800' } };
   dL.alignment = { horizontal: 'right', vertical: 'middle' };
   
   const dV = sheet.getCell(dRow.number, 7); // Column G (VALOR)
-  dV.value = formatCurrency(finalBudgetValue - totalDespesas);
-  dV.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FFCC0000' } };
+  dV.value = formatCurrency(Math.abs(devolucaoVal));
+  dV.font = { name: 'Arial', size: 10, bold: true, color: { argb: devolucaoVal < 0 ? 'FFCC0000' : 'FF008800' } };
   dV.alignment = { horizontal: 'right', vertical: 'middle' };
   dV.border = { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };
 
@@ -476,7 +477,7 @@ export const importAndFormatExcel = async (file, reportYear = 2025, forcedInstal
     if (n.includes('FISCAL')) return 'fiscalizacao';
     if (n.includes('EDUCA') || n.includes('ED. MEDICA')) return 'educacao';
     if (n.includes('JETON') || n.includes('VIAGEM') || n.includes('VIAGENS')) return 'jeton';
-    if (n.includes('COTA') || n.includes('OUTROS') || n.includes('PROJETO') || n.includes('GERAL')) return 'cota';
+    if (n.includes('COTA') || n.includes('OUTROS') || n.includes('PROJETO') || n.includes('GERAL') || n.includes('PRESTAÇ') || n.includes('PRESTAC')) return 'cota';
     return null;
   };
 

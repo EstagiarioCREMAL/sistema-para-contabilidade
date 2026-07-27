@@ -112,7 +112,7 @@ export default function Dashboard({ setActiveTab }) {
             <PieChart size={18} />
             <span style={{ fontWeight: '500', fontSize: '0.875rem' }}>Saldo Disponível</span>
           </div>
-          <div style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--success)' }}>
+          <div style={{ fontSize: '1.5rem', fontWeight: '700', color: totals.balance < 0 ? 'var(--danger)' : 'var(--success)' }}>
             {formatCurrency(totals.balance)}
           </div>
         </div>

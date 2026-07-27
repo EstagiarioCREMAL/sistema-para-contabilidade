@@ -21,6 +21,7 @@ export default function ReportView({ reportType }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterMonth, setFilterMonth] = useState('');
   const [filterValue, setFilterValue] = useState('');
+  const [filterInstallment, setFilterInstallment] = useState('1'); // Default to 1ª Parcela for consistency
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState({});
   const [showObsInExcel, setShowObsInExcel] = useState(true);
@@ -77,8 +78,15 @@ export default function ReportView({ reportType }) {
     
     const matchesValue = filterValue ? e.value >= parseFloat(filterValue) : true;
 
-    return matchesSearch && matchesMonth && matchesValue;
+    // Filter by Installment (Parcela) - if set to 'all' or empty, show all; otherwise match installment number (default 1)
+    const entryInstallment = String(e.installment || '1').trim();
+    const matchesInstallment = (filterInstallment === '' || filterInstallment === 'all')
+      ? true
+      : entryInstallment === String(filterInstallment);
+
+    return matchesSearch && matchesMonth && matchesValue && matchesInstallment;
   });
+
   const currentBudget = reportType === REPORT_TYPES.COTA
     ? ((budgets.fiscalizacao || 0) + (budgets.educacao || 0) + (budgets.cota || 0))
     : (budgets[reportType] || 0);
@@ -90,17 +98,22 @@ export default function ReportView({ reportType }) {
     const idxB = parseInt(b.itemIndex) || 0;
     if (idxA !== idxB) return idxA - idxB;
 
-    // 2. Sort by Process Number (numeric comparison)
+    // 2. Sort by Installment (numeric comparison)
+    const instA = parseInt(a.installment) || 1;
+    const instB = parseInt(b.installment) || 1;
+    if (instA !== instB) return instA - instB;
+
+    // 3. Sort by Process Number (numeric comparison)
     const procA = String(a.processNumber || '');
     const procB = String(b.processNumber || '');
     if (procA !== procB) return procA.localeCompare(procB, undefined, { numeric: true });
 
-    // 3. Sort by Date
+    // 4. Sort by Date
     const dateA = new Date(a.date);
     const dateB = new Date(b.date);
     if (dateA - dateB !== 0) return dateA - dateB;
 
-    // 4. Fallback to ID for stable sorting
+    // 5. Fallback to ID for stable sorting
     return (a.id || '').localeCompare(b.id || '');
   });
 
@@ -121,7 +134,7 @@ export default function ReportView({ reportType }) {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, filterMonth, filterValue]);
+  }, [searchTerm, filterMonth, filterValue, filterInstallment]);
 
   const totalDespesas = currentEntries.reduce((acc, curr) => acc + curr.value, 0);
   const devolucaoCFM = currentBudget - totalDespesas;
@@ -561,6 +574,18 @@ export default function ReportView({ reportType }) {
 
         <div style={{ flex: 1, minWidth: '150px' }}>
           <select 
+            value={filterInstallment} 
+            onChange={(e) => setFilterInstallment(e.target.value)}
+            style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', fontWeight: '600' }}
+          >
+            <option value="1">1ª Parcela (Padrão)</option>
+            <option value="2">2ª Parcela</option>
+            <option value="all">Todas as Parcelas</option>
+          </select>
+        </div>
+
+        <div style={{ flex: 1, minWidth: '150px' }}>
+          <select 
             value={filterMonth} 
             onChange={(e) => setFilterMonth(e.target.value)}
             style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}
@@ -916,9 +941,11 @@ export default function ReportView({ reportType }) {
                 <td colSpan={2} style={{ fontWeight: 'bold' }}>{formatCurrency(totalDespesas)}</td>
               </tr>
               <tr>
-                <td colSpan={totalCols - 2} style={{ textAlign: 'right', fontWeight: 'bold', color: 'var(--danger)' }}>DEVOLUÇÃO AO CFM:</td>
-                <td colSpan={2} style={{ fontWeight: 'bold', color: 'var(--danger)' }}>
-                  {formatCurrency(devolucaoCFM)}
+                <td colSpan={totalCols - 2} style={{ textAlign: 'right', fontWeight: 'bold', color: devolucaoCFM < 0 ? 'var(--danger)' : 'var(--success)' }}>
+                  {devolucaoCFM < 0 ? 'DÉFICIT / SALDO EXCEDENTE:' : 'DEVOLUÇÃO AO CFM:'}
+                </td>
+                <td colSpan={2} style={{ fontWeight: 'bold', color: devolucaoCFM < 0 ? 'var(--danger)' : 'var(--success)' }}>
+                  {formatCurrency(Math.abs(devolucaoCFM))}
                 </td>
               </tr>
             </tfoot>

@@ -46,9 +46,22 @@ export const generatePDF = async ({ reportType, reportName, entries, budget, pre
     
     return isRightType && isRightYear && !isGhost;
   }).sort((a, b) => {
-    const instA = a.installment ? String(a.installment) : '';
-    const instB = b.installment ? String(b.installment) : '';
-    if (instA !== instB) return instA.localeCompare(instB, undefined, { numeric: true });
+    // 1. Sort by Item Index (manual order)
+    const idxA = parseInt(a.itemIndex) || 0;
+    const idxB = parseInt(b.itemIndex) || 0;
+    if (idxA !== idxB) return idxA - idxB;
+
+    // 2. Sort by Installment
+    const instA = parseInt(a.installment) || 1;
+    const instB = parseInt(b.installment) || 1;
+    if (instA !== instB) return instA - instB;
+
+    // 3. Sort by Process Number
+    const procA = String(a.processNumber || '');
+    const procB = String(b.processNumber || '');
+    if (procA !== procB) return procA.localeCompare(procB, undefined, { numeric: true });
+
+    // 4. Sort by Date
     return new Date(a.date) - new Date(b.date);
   });
   let currentBalance = installmentInfo ? installmentInfo.value : budget;
@@ -168,7 +181,7 @@ export const generatePDF = async ({ reportType, reportName, entries, budget, pre
     startY: finalY,
     body: [
       ['TOTAL DE DESPESAS', formatCurrency(totalDespesas)],
-      ['DEVOLUÇÃO AO CFM', formatCurrency(devolucaoCFM)]
+      [devolucaoCFM < 0 ? 'DÉFICIT / SALDO EXCEDENTE' : 'DEVOLUÇÃO AO CFM', formatCurrency(Math.abs(devolucaoCFM))]
     ],
     theme: 'grid',
     bodyStyles: {
