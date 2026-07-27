@@ -3,9 +3,10 @@ import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
 
 import { formatCurrency, formatDate } from './formatters';
+import logoImg from '../assets/Logo CREMAL.jpg';
 
-const getBase64ImageFromUrl = (imageUrl) => {
-  return new Promise((resolve, reject) => {
+const getBase64ImageFromUrl = (imageUrl = logoImg) => {
+  return new Promise((resolve) => {
     const img = new Image();
     img.crossOrigin = 'Anonymous';
     img.onload = () => {
@@ -17,8 +18,9 @@ const getBase64ImageFromUrl = (imageUrl) => {
       const dataURL = canvas.toDataURL('image/jpeg');
       resolve(dataURL);
     };
-    img.onerror = () => {
-      reject(new Error('Falha ao carregar imagem para o PDF.'));
+    img.onerror = (error) => {
+      console.warn('Could not load logo image for PDF', error);
+      resolve(null);
     };
     img.src = imageUrl;
   });
@@ -95,11 +97,13 @@ export const generatePDF = async ({ reportType, reportName, entries, budget, pre
   // 1. Logo Box
   doc.rect(headerX, currentY, tableWidth, 90);
   try {
-    const logoData = await getBase64ImageFromUrl('/logo.jpg'); // absolute path works in both Vercel and Electron
-    const bannerWidth = 350;
-    const bannerHeight = 80;
-    const xCenter = (841.89 - bannerWidth) / 2;
-    doc.addImage(logoData, 'JPEG', xCenter, currentY + 5, bannerWidth, bannerHeight);
+    const logoData = await getBase64ImageFromUrl(logoImg);
+    if (logoData) {
+      const bannerWidth = 350;
+      const bannerHeight = 80;
+      const xCenter = (841.89 - bannerWidth) / 2;
+      doc.addImage(logoData, 'JPEG', xCenter, currentY + 5, bannerWidth, bannerHeight);
+    }
   } catch (error) {
     console.error("Could not load logo image for PDF", error);
   }

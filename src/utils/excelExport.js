@@ -3,11 +3,11 @@ import { saveAs } from 'file-saver';
 import { format } from 'date-fns';
 
 import { formatCurrency, formatDate } from './formatters';
+import logoImg from '../assets/Logo CREMAL.jpg';
 
 /**
- * Fetches logo from /logo.png and returns it as an ArrayBuffer for ExcelJS.
+ * Fetches logo from imported asset and returns base64 for ExcelJS.
  */
-
 export const getLogoBuffer = async () => {
   return new Promise((resolve) => {
     const img = new Image();
@@ -25,7 +25,7 @@ export const getLogoBuffer = async () => {
       console.warn('Could not load logo for Excel');
       resolve(null);
     };
-    img.src = '/logo.jpg'; // absolute path works in both web (Vercel) and Electron
+    img.src = logoImg;
   });
 };
 
