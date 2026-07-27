@@ -7,12 +7,17 @@ import { generateMasterExcel, getLogoBuffer } from '../utils/excelExport';
 export default function Dashboard({ setActiveTab }) {
   const { entries, budgets, reportYear, presidentInfo, addToast } = useAppContext();
   const [isGenerating, setIsGenerating] = useState(false);
+  const [dashInstallment, setDashInstallment] = useState('1'); // Default to 1ª Parcela
 
-  // Calculations - Filter entries by selected year
+  // Calculations - Filter entries by selected year AND installment (default 1ª Parcela)
   const yearEntries = entries.filter(e => {
     const entryDate = new Date(e.date);
-    // Use UTC to ensure consistency across different local timezone dates
-    return entryDate.getUTCFullYear() === reportYear;
+    const isRightYear = entryDate.getUTCFullYear() === reportYear;
+    const entryInst = String(e.installment || '1').trim();
+    const isRightInst = (dashInstallment === 'all' || dashInstallment === '')
+      ? true
+      : entryInst === String(dashInstallment);
+    return isRightYear && isRightInst;
   });
 
   const totals = {
@@ -52,7 +57,25 @@ export default function Dashboard({ setActiveTab }) {
           <h1 className="page-title">Dashboard Financeiro</h1>
           <p className="page-subtitle">Visão Geral dos Convênios CFM - Exercício {reportYear}</p>
         </div>
-        <div style={{ display: 'flex', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+          <select
+            value={dashInstallment}
+            onChange={(e) => setDashInstallment(e.target.value)}
+            style={{
+              padding: '0.6rem 1rem',
+              borderRadius: 'var(--radius-sm)',
+              border: '1px solid var(--border-color)',
+              fontWeight: '600',
+              backgroundColor: 'var(--card-bg)',
+              color: 'var(--text-color)',
+              cursor: 'pointer'
+            }}
+          >
+            <option value="1">1ª Parcela (Padrão)</option>
+            <option value="2">2ª Parcela</option>
+            <option value="all">Todas as Parcelas</option>
+          </select>
+
           <button 
             className="btn btn-accent"
             disabled={isGenerating}
