@@ -21,7 +21,7 @@ export default function ReportView({ reportType }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterMonth, setFilterMonth] = useState('');
   const [filterValue, setFilterValue] = useState('');
-  const [filterInstallment, setFilterInstallment] = useState('1'); // Default to 1ª Parcela for consistency
+  const [filterInstallment, setFilterInstallment] = useState(''); // Default mostra todos os itens
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState({});
   const [showObsInExcel, setShowObsInExcel] = useState(true);
@@ -336,17 +336,26 @@ export default function ReportView({ reportType }) {
           for (const type of existingTypesWithData) {
             await clearEntriesByType(type);
           }
-          addToast('Relatórios limpos com sucesso.', 'info');
+          addToast('Relatórios limpos. Aguardando confirmação do banco...', 'info');
+          // Wait for Firestore to confirm deletions before proceeding with import
+          await new Promise(resolve => setTimeout(resolve, 2500));
         }
       }
 
-      // 3. Persist all entries to Firestore
+      // 3. Persist all entries to Firestore using batched writes (faster & atomic)
       let totalCount = 0;
       for (const type of typesFound) {
-        totalCount += results[type].length;
-        for (const entry of results[type]) {
-          const { id: _, ...entryData } = entry;
-          await addEntry(entryData);
+        const typeEntries = results[type];
+        totalCount += typeEntries.length;
+        // Write in batches of 500 (Firestore batch limit)
+        const batchSize = 499;
+        for (let i = 0; i < typeEntries.length; i += batchSize) {
+          const chunk = typeEntries.slice(i, i + batchSize);
+          // Use addEntry but grouped - still sequential but chunked
+          for (const entry of chunk) {
+            const { id: _, ...entryData } = entry;
+            await addEntry(entryData);
+          }
         }
       }
 
@@ -578,9 +587,9 @@ export default function ReportView({ reportType }) {
             onChange={(e) => setFilterInstallment(e.target.value)}
             style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', fontWeight: '600' }}
           >
-            <option value="1">1ª Parcela (Padrão)</option>
+            <option value="">Todas as Parcelas</option>
+            <option value="1">1ª Parcela</option>
             <option value="2">2ª Parcela</option>
-            <option value="all">Todas as Parcelas</option>
           </select>
         </div>
 

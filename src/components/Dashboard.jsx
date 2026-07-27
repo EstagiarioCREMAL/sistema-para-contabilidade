@@ -7,7 +7,7 @@ import { generateMasterExcel, getLogoBuffer } from '../utils/excelExport';
 export default function Dashboard({ setActiveTab }) {
   const { entries, budgets, reportYear, presidentInfo, addToast } = useAppContext();
   const [isGenerating, setIsGenerating] = useState(false);
-  const [dashInstallment, setDashInstallment] = useState('1'); // Default to 1ª Parcela
+  const [dashInstallment, setDashInstallment] = useState('all'); // Padrão: Todas as Parcelas
 
   // Calculations - Filter entries by selected year AND installment (default 1ª Parcela)
   const yearEntries = entries.filter(e => {
@@ -71,9 +71,9 @@ export default function Dashboard({ setActiveTab }) {
               cursor: 'pointer'
             }}
           >
-            <option value="1">1ª Parcela (Padrão)</option>
-            <option value="2">2ª Parcela</option>
             <option value="all">Todas as Parcelas</option>
+            <option value="1">1ª Parcela</option>
+            <option value="2">2ª Parcela</option>
           </select>
 
           <button 
