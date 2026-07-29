@@ -28,26 +28,30 @@ export default function Dashboard({ setActiveTab }) {
 
   const getCategoryStats = (type) => {
     const categoryEntries = yearEntries.filter(e => e.reportType === type);
-    const categoryBudget = budgets[type];
+    const categoryBudget = budgets[type] || 0;
     const categoryExpenses = categoryEntries.reduce((a, b) => a + b.value, 0);
     const categoryBalance = categoryBudget - categoryExpenses;
     const percentage = categoryBudget > 0 ? (categoryExpenses / categoryBudget) * 100 : 0;
+    const hasBudget = (budgets[type] !== undefined && budgets[type] > 0);
     
     return {
       type,
-      name: getReportName(type, reportYear).split(' - ')[1],
+      name: getReportName(type, reportYear).split(' - ')[1] || getReportName(type, reportYear),
       budget: categoryBudget,
       expenses: categoryExpenses,
       balance: categoryBalance,
       percentage: Math.min(percentage, 100),
-      isOver: percentage > 100
+      isOver: percentage > 100,
+      hasBudget
     };
   };
 
   const categories = [
     getCategoryStats(REPORT_TYPES.FISCALIZACAO),
     getCategoryStats(REPORT_TYPES.EDUCACAO),
-    getCategoryStats(REPORT_TYPES.COTA)
+    getCategoryStats(REPORT_TYPES.COTA),
+    getCategoryStats(REPORT_TYPES.JETON),
+    getCategoryStats(REPORT_TYPES.VALID)
   ];
 
   return (
@@ -168,27 +172,38 @@ export default function Dashboard({ setActiveTab }) {
               )}
             </div>
 
-            <div style={{ marginBottom: '1rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '0.25rem' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Execução: {cat.percentage.toFixed(1)}%</span>
-                <span style={{ fontWeight: '600' }}>{formatCurrency(cat.expenses)} / {formatCurrency(cat.budget)}</span>
+            {cat.hasBudget ? (
+              <>
+                <div style={{ marginBottom: '1rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '0.25rem' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>Execução: {cat.percentage.toFixed(1)}%</span>
+                    <span style={{ fontWeight: '600' }}>{formatCurrency(cat.expenses)} / {formatCurrency(cat.budget)}</span>
+                  </div>
+                  <div style={{ width: '100%', height: '8px', backgroundColor: 'var(--border-color)', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div style={{ 
+                      width: `${cat.percentage}%`, 
+                      height: '100%', 
+                      backgroundColor: cat.isOver ? 'var(--danger)' : 'var(--primary-color)',
+                      transition: 'width 0.5s ease-out'
+                    }} />
+                  </div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Saldo Restante</span>
+                  <span style={{ fontSize: '1rem', fontWeight: '700', color: cat.balance < 0 ? 'var(--danger)' : 'var(--success)' }}>
+                    {formatCurrency(cat.balance)}
+                  </span>
+                </div>
+              </>
+            ) : (
+              // Sem orçamento definido (ex: VALID, JETON zerado) — mostra só total de despesas
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
+                <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Total de Despesas</span>
+                <span style={{ fontSize: '1rem', fontWeight: '700', color: cat.expenses > 0 ? 'var(--primary-color)' : 'var(--text-secondary)' }}>
+                  {cat.expenses > 0 ? formatCurrency(cat.expenses) : 'Sem lançamentos'}
+                </span>
               </div>
-              <div style={{ width: '100%', height: '8px', backgroundColor: 'var(--border-color)', borderRadius: '4px', overflow: 'hidden' }}>
-                <div style={{ 
-                  width: `${cat.percentage}%`, 
-                  height: '100%', 
-                  backgroundColor: cat.isOver ? 'var(--danger)' : 'var(--primary-color)',
-                  transition: 'width 0.5s ease-out'
-                }} />
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Saldo Restante</span>
-              <span style={{ fontSize: '1rem', fontWeight: '700', color: cat.balance < 0 ? 'var(--danger)' : 'var(--success)' }}>
-                {formatCurrency(cat.balance)}
-              </span>
-            </div>
+            )}
           </div>
         ))}
       </div>
