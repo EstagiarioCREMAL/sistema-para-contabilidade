@@ -495,7 +495,14 @@ export const importAndFormatExcel = async (file, reportYear = 2025, forcedInstal
       const rowText = rowValues.join(' ');
 
       // Stop condition: if row mentions summary footers, the main expense table has ended
-      if (rowText.includes('TOTAL DE DESPESAS') || rowText.includes('DEVOLUÇÃO AO CONSELHO') || rowText.includes('DEVOLUCAO AO CONSELHO')) {
+      if (
+        rowText.includes('TOTAL DE DESPESAS') ||
+        rowText.includes('DEVOLUÇÃO AO CONSELHO') ||
+        rowText.includes('DEVOLUCAO AO CONSELHO') ||
+        rowText.includes('TOTAL GERAL') ||
+        rowText.includes('VALOR DO CONVÊNIO') ||
+        rowText.includes('VALOR DO CONVENIO')
+      ) {
         tableEnded = true;
         return;
       }
@@ -518,7 +525,8 @@ export const importAndFormatExcel = async (file, reportYear = 2025, forcedInstal
           const sheetMatch = 
             sheetNameUpper.match(/(\d+)\s*[ªº°OO]?[.\-\s]*PA[R]*CELA/i) || 
             sheetNameUpper.match(/PA[R]*CELA\s*(\d+)/i) ||
-            sheetNameUpper.match(/\b([12])\s*[ªº°OO]?\b/);
+            // More specific fallback: only match "1" or "2" when followed by parcela/parte context
+            sheetNameUpper.match(/\b([12])\s*[ªº°OO]?\s*(?:PARCELA|PARTE|PARC)\b/i);
           if (sheetMatch) detectedInstallment = sheetMatch[1];
         }
       }
@@ -545,9 +553,15 @@ export const importAndFormatExcel = async (file, reportYear = 2025, forcedInstal
       if (cell1Str.includes('CIM E CIC')) { currentValidCategory = 'CIM_CIC'; return; }
       if (cell1Str.includes('CPM') && cell1Str.includes('VALID')) { currentValidCategory = 'CPM'; return; }
 
-      // Skip common non-data rows
-      const headerKeywords = ['PRESTAÇÃO', 'TOTAL', 'DEVOLUÇÃO', 'SALDO', 'CONVÊNIO', 'ORIGEM', 'ESTIMADO'];
+      // Skip common non-data rows — check only the identifier/date columns (1 and 2), NOT the
+      // purpose/description field, to avoid blocking legitimate entries like
+      // "Pagamento referente à prestação de serviços de balanceamento..." (RENOVADORA DE PNEUS case)
+      const headerKeywords = ['PRESTAÇÃO DE CONTAS', 'TOTAL DE', 'DEVOLUÇÃO', 'SALDO ANTERIOR', 'CONVÊNIO CFM', 'ESTIMADO'];
+      // Also check columns 1-2 only for shorter keywords that could appear in descriptions
+      const shortKeywordsCol12 = ['TOTAL', 'SALDO', 'CONVÊNIO', 'ORIGEM'];
+      const col12Text = (rowValues[1] || '') + ' ' + (rowValues[2] || '');
       if (headerKeywords.some(k => rowText.includes(k))) return;
+      if (shortKeywordsCol12.some(k => col12Text.includes(k))) return;
 
       // 3. Parse VALID
       if (currentValidCategory) {
@@ -605,7 +619,12 @@ export const importAndFormatExcel = async (file, reportYear = 2025, forcedInstal
       // Use parsed date if available, or last valid date ONLY if row has processNumber or non-empty beneficiary/purpose
       const effectiveDateStr = parsedDateStr || (lastValidDate && (processVal || beneficiary.trim() || purpose.trim()) ? lastValidDate : null);
 
-      if (effectiveDateStr && (beneficiary.trim().length > 0 || purpose.trim().length > 0)) {
+      // Rejeitar linhas de resumo/totais disfarçadas como dado (ex: beneficiário = " 1º PARCELA", " 2º PARCELA")
+      // Essas linhas representam o valor do convênio total e NÃO são lançamentos reais
+      const isSummaryRow = /^\s*\d+\s*[ªº°]?\s*PA[R]*CELA\s*$/.test(beneficiary.trim()) ||
+                           /^\s*\d+\s*[ªº°]?\s*PA[R]*CELA\s*$/.test(purpose.trim());
+
+      if (effectiveDateStr && !isSummaryRow && (beneficiary.trim().length > 0 || purpose.trim().length > 0)) {
           let parsedValue = 0;
           
           // Helper to parse currency from cell value
