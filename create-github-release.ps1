@@ -11,9 +11,9 @@ param(
 
 $owner      = "EstagiarioCREMAL"
 $repo       = "sistema-para-contabilidade"
-$tag        = "v1.2.2"
-$releaseName = "v1.2.2 - Dashboard completo com Jeton e VALID"
-$releaseBody = "## O que há de novo nesta versão`n`n- **Dashboard completo**: cards de Jeton (Viagens) e Relatório VALID agora aparecem no painel`n- **Cards inteligentes**: relatórios com orçamento mostram barra de progresso e saldo; sem orçamento mostram total de despesas`n- Inclui todas as correções de importação do Excel das versões anteriores"
+$tag        = "v1.2.3"
+$releaseName = "v1.2.3 - Isolamento de Parcela na Importação e Leitura da 2ª Parcela"
+$releaseBody = "## O que há de novo nesta versão`n`n- **Isolamento da 1ª Parcela na Importação**: ao selecionar '1ª Parcela' na importação, abas da 2ª Parcela são ignoradas automaticamente (Educação Médica 1ª Parcela fica em R$ 177.700,00 / 49 itens)`n- **Leitura da 2ª Parcela Corrigida**: corrigido o mapeamento da coluna de valores na 2ª Parcela (evita somar números de processo como se fossem reais)`n- **Educação Médica 100% precisa**: 1ª Parcela em R$ 177.700,00 e 2ª Parcela em R$ 64.750,00"
 
 $releaseDir = Join-Path $PSScriptRoot "release"
 $headers = @{
