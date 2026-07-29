@@ -11,9 +11,9 @@ param(
 
 $owner      = "EstagiarioCREMAL"
 $repo       = "sistema-para-contabilidade"
-$tag        = "v1.2.0"
-$releaseName = "v1.2.0 - Correção da 1ª Parcela, Ordenação e Auto-Updater"
-$releaseBody = "## O que ha de novo nesta versao`n`n- **Filtro e Isolamento da 1ª Parcela**: exibicao adequada sem estouro indevido do orcamento`n- **Correcao de Fusos Horarios em Datas**: datas como 21/07 nao sofrem deslocamento`n- **Ordenacao Padronizada**: sequencia identica na Tela, Excel e PDF`n- **Melhorias no Rodape**: indicacao clara de Devolucao ou Deficit`n- **Dashboard Ajustado**: indicador visual correto para saldos negativos"
+$tag        = "v1.2.1"
+$releaseName = "v1.2.1 - Correção na Importação do Excel"
+$releaseBody = "## O que há de novo nesta versão`n`n- **Correção crítica na importação do Excel**: a linha de totais da parcela (R$ 300.000 / R$ 200.000) não é mais importada como lançamento real`n- **Correção: lançamentos com 'prestação' na finalidade**: itens como RENOVADORA DE PNEUS OK LTDA não são mais ignorados indevidamente`n- **Importação bate com SOMA(F13:F71)**: totais de Fiscalização (R$ 150.074,67) e Educação Médica agora coincidem exatamente com a planilha`n- **Regex de detecção de parcela mais segura**: evita capturar número de outros contextos no nome da aba"
 
 $releaseDir = Join-Path $PSScriptRoot "release"
 $headers = @{
