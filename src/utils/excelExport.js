@@ -470,16 +470,20 @@ export const importAndFormatExcel = async (file, reportYear = 2025, forcedInstal
     let detectedInstallment = forcedInstallment;
 
     // Try to detect installment from sheet name initially (e.g. 'EDUCAÇÃO MEDICA 2°PACELA', 'FISCALIZAÇÃO 2ª PARCELA')
-    if (detectedInstallment === null) {
-      const sheetNameUpper = sheet.name.toUpperCase();
-      const sheetInstMatch = 
-        sheetNameUpper.match(/(\d+)\s*[ªº°OO]?[.\-\s]*PA[R]*CELA/i) || 
-        sheetNameUpper.match(/PA[R]*CELA\s*(\d+)/i) ||
-        sheetNameUpper.match(/(\d+)\s*[ªº°OO]?[.\-\s]*PA[R]*TE/i) ||
-        sheetNameUpper.match(/\b([12])\s*[ªº°OO]?\b/);
-      if (sheetInstMatch) {
-        detectedInstallment = sheetInstMatch[1];
-      }
+    const sheetNameUpper = sheet.name.toUpperCase();
+    const sheetInstMatch = 
+      sheetNameUpper.match(/(\d+)\s*[ªº°OO]?[.\-\s]*PA[R]*CELA/i) || 
+      sheetNameUpper.match(/PA[R]*CELA\s*(\d+)/i) ||
+      sheetNameUpper.match(/(\d+)\s*[ªº°OO]?[.\-\s]*PA[R]*TE/i) ||
+      sheetNameUpper.match(/\b([12])\s*[ªº°OO]?\b/);
+
+    // If forcedInstallment is specified by user, skip sheets that belong to a different installment
+    if (forcedInstallment !== null && sheetInstMatch && String(sheetInstMatch[1]) !== String(forcedInstallment)) {
+      return;
+    }
+
+    if (detectedInstallment === null && sheetInstMatch) {
+      detectedInstallment = sheetInstMatch[1];
     }
 
     let colMap = { date: -1, beneficiary: -1, purpose: -1, process: -1, value: -1, unitValue: -1, qty: -1, installment: -1 };
@@ -641,6 +645,18 @@ export const importAndFormatExcel = async (file, reportYear = 2025, forcedInstal
           };
 
           parsedValue = parseCur(valueRawOuter);
+
+          // If the parsed value equals the process number or the Col 1 index string, the value column was mismapped to process column
+          const valStr = getCellValueAsString({ value: valueRawOuter, isMerged: false }).trim();
+          const proStr = processVal ? processVal.trim() : '';
+          const col1Str = getCellValueAsString({ value: row.getCell(1).value, isMerged: false }).trim();
+
+          if (parsedValue > 0 && (valStr === proStr || valStr === col1Str)) {
+            const nextVal = parseCur(row.getCell(colVal + 1).value);
+            if (nextVal > 0 && String(row.getCell(colVal + 1).value).trim() !== valStr) {
+              parsedValue = nextVal;
+            }
+          }
           
           // Smart Fallback: If primary column is empty, check neighbors (some accountant reports shift columns)
           if (parsedValue === 0) {

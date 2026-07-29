@@ -11,9 +11,9 @@ param(
 
 $owner      = "EstagiarioCREMAL"
 $repo       = "sistema-para-contabilidade"
-$tag        = "v1.2.1"
-$releaseName = "v1.2.1 - Correção na Importação do Excel"
-$releaseBody = "## O que há de novo nesta versão`n`n- **Correção crítica na importação do Excel**: a linha de totais da parcela (R$ 300.000 / R$ 200.000) não é mais importada como lançamento real`n- **Correção: lançamentos com 'prestação' na finalidade**: itens como RENOVADORA DE PNEUS OK LTDA não são mais ignorados indevidamente`n- **Importação bate com SOMA(F13:F71)**: totais de Fiscalização (R$ 150.074,67) e Educação Médica agora coincidem exatamente com a planilha`n- **Regex de detecção de parcela mais segura**: evita capturar número de outros contextos no nome da aba"
+$tag        = "v1.2.2"
+$releaseName = "v1.2.2 - Dashboard completo com Jeton e VALID"
+$releaseBody = "## O que há de novo nesta versão`n`n- **Dashboard completo**: cards de Jeton (Viagens) e Relatório VALID agora aparecem no painel`n- **Cards inteligentes**: relatórios com orçamento mostram barra de progresso e saldo; sem orçamento mostram total de despesas`n- Inclui todas as correções de importação do Excel das versões anteriores"
 
 $releaseDir = Join-Path $PSScriptRoot "release"
 $headers = @{
