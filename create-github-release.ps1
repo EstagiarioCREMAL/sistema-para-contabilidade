@@ -11,9 +11,9 @@ param(
 
 $owner      = "EstagiarioCREMAL"
 $repo       = "sistema-para-contabilidade"
-$tag        = "v1.2.4"
-$releaseName = "v1.2.4 - Orçamento por Parcela (1ª e 2ª) Separado"
-$releaseBody = "## O que há de novo nesta versão`n`n- **Orçamento Separado por Parcela**: as configurações agora permitem informar o orçamento da 1ª e da 2ª parcela separadamente para cada categoria (Fiscalização, Educação Médica, Cota Parte, Jeton)`n- **Preenchimento Automático no PDF/Excel**: ao exportar por parcela, o valor do orçamento é preenchido automaticamente com base no que foi salvo nas configurações`n- **Campo de Parcela Melhorado**: substituido campo numérico livre por select '1ª Parcela' / '2ª Parcela' no modal de exportação`n- **Compatibilidade**: dados antigos continuam funcionando normalmente sem perda de informação"
+$tag        = "v1.2.5"
+$releaseName = "v1.2.5 - Seleção de Parcela no Exportar PDF"
+$releaseBody = "## O que há de novo nesta versão`n`n- **Seleção de Parcela no Botão Exportar PDF**: agora é possível escolher 'Todas', '1ª Parcela' ou '2ª Parcela' diretamente no botão de exportação rápida de PDF`n- **Orçamento Simplificado**: nas configurações, apenas Fiscalização e Educação Médica têm campos de orçamento por parcela (Cota Parte e Jeton removidos)`n- **Correções de Orçamento por Parcela**: o valor do orçamento no PDF de parcela específica é obtido automaticamente das configurações salvas"
 
 $releaseDir = Join-Path $PSScriptRoot "release"
 $headers = @{
