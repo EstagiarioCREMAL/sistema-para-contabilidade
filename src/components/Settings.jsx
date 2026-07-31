@@ -190,8 +190,6 @@ export default function Settings() {
           {[
             { label: 'Fiscalização', p1: 'fiscalizacao_p1', p2: 'fiscalizacao_p2' },
             { label: 'Educação Médica', p1: 'educacao_p1', p2: 'educacao_p2' },
-            { label: 'Cota Parte Projetos', p1: 'cota_p1', p2: 'cota_p2' },
-            { label: 'Jeton (Viagens)', p1: 'jeton_p1', p2: 'jeton_p2' },
           ].map(({ label, p1, p2 }) => (
             <div key={label} className="form-row" style={{ marginTop: '0.75rem', alignItems: 'center' }}>
               <div style={{ flex: 0.6 }}>

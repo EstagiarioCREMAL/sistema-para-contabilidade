@@ -28,6 +28,7 @@ export default function ReportView({ reportType }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [quickPdfParcela, setQuickPdfParcela] = useState('all'); // 'all' | '1' | '2'
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportInstallment, setExportInstallment] = useState({ number: '1', value: '' });
   const [currentPage, setCurrentPage] = useState(1);
@@ -461,30 +462,69 @@ export default function ReportView({ reportType }) {
 
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'flex-end', alignItems: 'center' }}>
 
-          <button 
-            className="btn btn-primary"
-            disabled={isExportingPdf}
-            onClick={async () => {
-              setIsExportingPdf(true);
-              await new Promise(r => setTimeout(r, 50)); // Allow UI to update
-              try {
-                await generatePDF({
-                  reportType,
-                  reportName: getReportName(reportType, reportYear),
-                  entries: entriesForExport,
-                  budget: currentBudget,
-                  presidentInfo,
-                  reportYear
-                });
-              } catch {
-                addToast('Erro ao gerar PDF.', 'danger');
-              }
-              setIsExportingPdf(false);
-            }}
-          >
-            <FileOutput size={18} />
-            {isExportingPdf ? 'Gerando...' : 'Exportar PDF'}
-          </button>
+          {/* ── Exportar PDF com seletor de parcela ── */}
+          <div style={{ display: 'flex', alignItems: 'center', borderRadius: 'var(--radius-sm)', overflow: 'hidden', border: '2px solid var(--primary-color)' }}>
+            <select
+              value={quickPdfParcela}
+              onChange={(e) => setQuickPdfParcela(e.target.value)}
+              disabled={isExportingPdf}
+              style={{
+                padding: '0.55rem 0.6rem',
+                border: 'none',
+                borderRight: '2px solid var(--primary-color)',
+                background: 'var(--primary-color)',
+                color: 'white',
+                fontWeight: '700',
+                fontSize: '0.8rem',
+                cursor: 'pointer',
+                outline: 'none',
+                minWidth: '110px'
+              }}
+            >
+              <option value="all">Todas</option>
+              <option value="1">1ª Parcela</option>
+              <option value="2">2ª Parcela</option>
+            </select>
+            <button
+              className="btn btn-primary"
+              disabled={isExportingPdf}
+              style={{ borderRadius: 0, border: 'none', margin: 0 }}
+              onClick={async () => {
+                setIsExportingPdf(true);
+                await new Promise(r => setTimeout(r, 50));
+                try {
+                  let pdfEntries = entriesForExport;
+                  let pdfBudget = currentBudget;
+                  let pdfInstallmentInfo = undefined;
+
+                  if (quickPdfParcela === '1' || quickPdfParcela === '2') {
+                    pdfEntries = entriesForExport.filter(e => String(e.installment || '1') === quickPdfParcela);
+                    const suffix = `_p${quickPdfParcela}`;
+                    pdfBudget = reportType === REPORT_TYPES.COTA
+                      ? ((budgets[`fiscalizacao${suffix}`] || 0) + (budgets[`educacao${suffix}`] || 0) + (budgets[`cota${suffix}`] || 0))
+                      : (budgets[`${reportType}${suffix}`] || 0);
+                    pdfInstallmentInfo = { number: quickPdfParcela, value: pdfBudget };
+                  }
+
+                  await generatePDF({
+                    reportType,
+                    reportName: getReportName(reportType, reportYear),
+                    entries: pdfEntries,
+                    budget: pdfBudget,
+                    presidentInfo,
+                    reportYear,
+                    installmentInfo: pdfInstallmentInfo
+                  });
+                } catch {
+                  addToast('Erro ao gerar PDF.', 'danger');
+                }
+                setIsExportingPdf(false);
+              }}
+            >
+              <FileOutput size={18} />
+              {isExportingPdf ? 'Gerando...' : 'Exportar PDF'}
+            </button>
+          </div>
           
           <button 
             className="btn btn-outline"
@@ -564,9 +604,9 @@ export default function ReportView({ reportType }) {
             accept=".xlsx,.xls"
             style={{ display: 'none' }}
           />
+          </div>{/* end flex row */}
         </div>
       </div>
-    </div>
 
       {isLocked && (
         <div className="glass-panel fade-in" style={{ 
