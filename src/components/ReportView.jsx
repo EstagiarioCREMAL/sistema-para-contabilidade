@@ -375,10 +375,33 @@ export default function ReportView({ reportType }) {
   // Column count for footer colSpan (7 cols without actions, 8 with)
   const totalCols = isLocked ? 7 : 8;
 
-  // Entries + budget for the currently selected export type
+  // Entries + budget for the currently selected export type (total = p1 + p2)
   const exportBudget = exportReportType === REPORT_TYPES.COTA
     ? ((budgets.fiscalizacao || 0) + (budgets.educacao || 0) + (budgets.cota || 0))
     : (budgets[exportReportType] || 0);
+
+  // Returns the saved per-installment budget for the selected export type + installment number
+  const getInstallmentBudget = (type, installmentNum) => {
+    const suffix = `_p${installmentNum}`;
+    if (type === REPORT_TYPES.COTA) {
+      return (
+        (budgets[`fiscalizacao${suffix}`] || 0) +
+        (budgets[`educacao${suffix}`]     || 0) +
+        (budgets[`cota${suffix}`]         || 0)
+      );
+    }
+    return budgets[`${type}${suffix}`] || 0;
+  };
+
+  // Auto-fill exportInstallment.value whenever the type or installment number changes
+  React.useEffect(() => {
+    const num = exportInstallment.number;
+    if (num === '1' || num === '2') {
+      const autoValue = getInstallmentBudget(exportReportType, num);
+      setExportInstallment(prev => ({ ...prev, value: autoValue > 0 ? autoValue : prev.value }));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [exportReportType, exportInstallment.number, budgets]);
 
   const exportEntriesForModal = entries.filter(e => {
     const entryDate = new Date(e.date);
@@ -1081,22 +1104,29 @@ export default function ReportView({ reportType }) {
                 </p>
                 <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
                   <div style={{ flex: 1 }}>
-                    <label style={{ fontSize: '0.75rem' }}>Nº</label>
-                    <input 
-                      type="number" 
+                    <label style={{ fontSize: '0.75rem' }}>Nº da Parcela</label>
+                    <select
                       value={exportInstallment.number}
-                      onChange={(e) => setExportInstallment({ ...exportInstallment, number: e.target.value })}
-                      style={{ width: '100%', padding: '0.5rem' }}
-                    />
+                      onChange={(e) => setExportInstallment(prev => ({ ...prev, number: e.target.value }))}
+                      style={{ width: '100%', padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}
+                    >
+                      <option value="1">1ª Parcela</option>
+                      <option value="2">2ª Parcela</option>
+                    </select>
                   </div>
                   <div style={{ flex: 2 }}>
-                    <label style={{ fontSize: '0.75rem' }}>Valor Estimado (R$)</label>
-                    <input 
-                      type="number" 
+                    <label style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      Valor Orçado (R$)
+                      {getInstallmentBudget(exportReportType, exportInstallment.number) > 0 && (
+                        <span style={{ fontSize: '0.68rem', color: 'var(--success, #16a34a)', fontWeight: '600' }}>✓ preenchido das configurações</span>
+                      )}
+                    </label>
+                    <input
+                      type="number"
                       step="0.01"
                       placeholder="0,00"
                       value={exportInstallment.value}
-                      onChange={(e) => setExportInstallment({ ...exportInstallment, value: e.target.value })}
+                      onChange={(e) => setExportInstallment(prev => ({ ...prev, value: e.target.value }))}
                       style={{ width: '100%', padding: '0.5rem' }}
                     />
                   </div>

@@ -11,9 +11,9 @@ param(
 
 $owner      = "EstagiarioCREMAL"
 $repo       = "sistema-para-contabilidade"
-$tag        = "v1.2.3"
-$releaseName = "v1.2.3 - Isolamento de Parcela na Importação e Leitura da 2ª Parcela"
-$releaseBody = "## O que há de novo nesta versão`n`n- **Isolamento da 1ª Parcela na Importação**: ao selecionar '1ª Parcela' na importação, abas da 2ª Parcela são ignoradas automaticamente (Educação Médica 1ª Parcela fica em R$ 177.700,00 / 49 itens)`n- **Leitura da 2ª Parcela Corrigida**: corrigido o mapeamento da coluna de valores na 2ª Parcela (evita somar números de processo como se fossem reais)`n- **Educação Médica 100% precisa**: 1ª Parcela em R$ 177.700,00 e 2ª Parcela em R$ 64.750,00"
+$tag        = "v1.2.4"
+$releaseName = "v1.2.4 - Orçamento por Parcela (1ª e 2ª) Separado"
+$releaseBody = "## O que há de novo nesta versão`n`n- **Orçamento Separado por Parcela**: as configurações agora permitem informar o orçamento da 1ª e da 2ª parcela separadamente para cada categoria (Fiscalização, Educação Médica, Cota Parte, Jeton)`n- **Preenchimento Automático no PDF/Excel**: ao exportar por parcela, o valor do orçamento é preenchido automaticamente com base no que foi salvo nas configurações`n- **Campo de Parcela Melhorado**: substituido campo numérico livre por select '1ª Parcela' / '2ª Parcela' no modal de exportação`n- **Compatibilidade**: dados antigos continuam funcionando normalmente sem perda de informação"
 
 $releaseDir = Join-Path $PSScriptRoot "release"
 $headers = @{

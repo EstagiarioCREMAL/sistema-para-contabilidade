@@ -43,16 +43,16 @@ export function AppProvider({ children }) {
   const [entries, setEntries] = useState([]);
   const [allBudgets, setAllBudgets] = useState({
     "2024": {
-      [REPORT_TYPES.FISCALIZACAO]: 316325.70,
-      [REPORT_TYPES.EDUCACAO]: 75000.00,
-      [REPORT_TYPES.COTA]: 223471.55,
-      [REPORT_TYPES.JETON]: 0
+      fiscalizacao_p1: 158162.85, fiscalizacao_p2: 158162.85,
+      educacao_p1: 37500.00,    educacao_p2: 37500.00,
+      cota_p1: 111735.775,      cota_p2: 111735.775,
+      jeton_p1: 0,              jeton_p2: 0
     },
     "2025": {
-      [REPORT_TYPES.FISCALIZACAO]: 320000.00,
-      [REPORT_TYPES.EDUCACAO]: 80000.00,
-      [REPORT_TYPES.COTA]: 250000.00,
-      [REPORT_TYPES.JETON]: 0
+      fiscalizacao_p1: 160000.00, fiscalizacao_p2: 160000.00,
+      educacao_p1: 40000.00,     educacao_p2: 40000.00,
+      cota_p1: 125000.00,        cota_p2: 125000.00,
+      jeton_p1: 0,               jeton_p2: 0
     }
   });
   
@@ -211,11 +211,24 @@ export function AppProvider({ children }) {
     migrate();
   }, [isMigrated, localEntries, localBudgets, localFinalized, localPresident, allBudgets, allFinalized, presidentInfo, addToast, setIsMigrated]);
 
-  const currentBudgets = allBudgets[reportYear] || {
-    [REPORT_TYPES.FISCALIZACAO]: 0,
-    [REPORT_TYPES.EDUCACAO]: 0,
-    [REPORT_TYPES.COTA]: 0,
-    [REPORT_TYPES.JETON]: 0
+  // currentBudgets exposes both per-installment values AND legacy totals (p1+p2)
+  // for backward-compatible display in ReportView ("Convênio Atual") and PDF saldo logic.
+  const rawBudgets = allBudgets[reportYear] || {};
+  const currentBudgets = {
+    // Per-installment fields
+    fiscalizacao_p1: rawBudgets.fiscalizacao_p1 ?? 0,
+    fiscalizacao_p2: rawBudgets.fiscalizacao_p2 ?? 0,
+    educacao_p1:     rawBudgets.educacao_p1     ?? 0,
+    educacao_p2:     rawBudgets.educacao_p2     ?? 0,
+    cota_p1:         rawBudgets.cota_p1         ?? 0,
+    cota_p2:         rawBudgets.cota_p2         ?? 0,
+    jeton_p1:        rawBudgets.jeton_p1        ?? 0,
+    jeton_p2:        rawBudgets.jeton_p2        ?? 0,
+    // Legacy total fields (sum of both installments) — used for overall balance display
+    [REPORT_TYPES.FISCALIZACAO]: (rawBudgets.fiscalizacao_p1 ?? 0) + (rawBudgets.fiscalizacao_p2 ?? 0),
+    [REPORT_TYPES.EDUCACAO]:     (rawBudgets.educacao_p1     ?? 0) + (rawBudgets.educacao_p2     ?? 0),
+    [REPORT_TYPES.COTA]:         (rawBudgets.cota_p1         ?? 0) + (rawBudgets.cota_p2         ?? 0),
+    [REPORT_TYPES.JETON]:        (rawBudgets.jeton_p1        ?? 0) + (rawBudgets.jeton_p2        ?? 0),
   };
   
   const currentFinalized = allFinalized[reportYear] || [];
@@ -308,12 +321,7 @@ export function AppProvider({ children }) {
 
   const updateBudget = async (type, value) => {
     const newYearBudget = {
-      ...(allBudgets[reportYear] || {
-        [REPORT_TYPES.FISCALIZACAO]: 0,
-        [REPORT_TYPES.EDUCACAO]: 0,
-        [REPORT_TYPES.COTA]: 0,
-        [REPORT_TYPES.JETON]: 0
-      }),
+      ...(allBudgets[reportYear] || {}),
       [type]: value
     };
     const updatedAllBudgets = { ...allBudgets, [reportYear]: newYearBudget };

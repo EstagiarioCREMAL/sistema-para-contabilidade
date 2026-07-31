@@ -17,19 +17,27 @@ export default function Settings() {
 
   // Local budget state to avoid Firestore write on every keystroke
   const [localBudget, setLocalBudget] = useState({
-    fiscalizacao: budgets.fiscalizacao ?? 0,
-    educacao: budgets.educacao ?? 0,
-    cota: budgets.cota ?? 0,
-    jeton: budgets.jeton ?? 0
+    fiscalizacao_p1: budgets.fiscalizacao_p1 ?? 0,
+    fiscalizacao_p2: budgets.fiscalizacao_p2 ?? 0,
+    educacao_p1:     budgets.educacao_p1     ?? 0,
+    educacao_p2:     budgets.educacao_p2     ?? 0,
+    cota_p1:         budgets.cota_p1         ?? 0,
+    cota_p2:         budgets.cota_p2         ?? 0,
+    jeton_p1:        budgets.jeton_p1        ?? 0,
+    jeton_p2:        budgets.jeton_p2        ?? 0,
   });
 
   // Sync local budget if remote budget changes (e.g., initial load or different year selected)
   React.useEffect(() => {
     setLocalBudget({
-      fiscalizacao: budgets.fiscalizacao ?? 0,
-      educacao: budgets.educacao ?? 0,
-      cota: budgets.cota ?? 0,
-      jeton: budgets.jeton ?? 0
+      fiscalizacao_p1: budgets.fiscalizacao_p1 ?? 0,
+      fiscalizacao_p2: budgets.fiscalizacao_p2 ?? 0,
+      educacao_p1:     budgets.educacao_p1     ?? 0,
+      educacao_p2:     budgets.educacao_p2     ?? 0,
+      cota_p1:         budgets.cota_p1         ?? 0,
+      cota_p2:         budgets.cota_p2         ?? 0,
+      jeton_p1:        budgets.jeton_p1        ?? 0,
+      jeton_p2:        budgets.jeton_p2        ?? 0,
     });
   }, [budgets]);
 
@@ -59,10 +67,14 @@ export default function Settings() {
     setIsSavingBudget(true);
     try {
       await updateYearBudgets({
-        fiscalizacao: parseFloat(localBudget.fiscalizacao) || 0,
-        educacao: parseFloat(localBudget.educacao) || 0,
-        cota: parseFloat(localBudget.cota) || 0,
-        jeton: parseFloat(localBudget.jeton) || 0
+        fiscalizacao_p1: parseFloat(localBudget.fiscalizacao_p1) || 0,
+        fiscalizacao_p2: parseFloat(localBudget.fiscalizacao_p2) || 0,
+        educacao_p1:     parseFloat(localBudget.educacao_p1)     || 0,
+        educacao_p2:     parseFloat(localBudget.educacao_p2)     || 0,
+        cota_p1:         parseFloat(localBudget.cota_p1)         || 0,
+        cota_p2:         parseFloat(localBudget.cota_p2)         || 0,
+        jeton_p1:        parseFloat(localBudget.jeton_p1)        || 0,
+        jeton_p2:        parseFloat(localBudget.jeton_p2)        || 0,
       });
       addToast('Orçamentos salvos com sucesso!', 'success');
     } catch {
@@ -164,47 +176,51 @@ export default function Settings() {
 
         <div className="card glass-panel">
           <h2 className="card-title">Valores de Convênio CFM - Exercício {reportYear}</h2>
-          <div className="form-row" style={{ marginTop: '1rem' }}>
-            <div className="form-group">
-              <label>Orçamento Fiscalização (R$)</label>
-              <input
-                type="number"
-                step="0.01"
-                value={localBudget.fiscalizacao}
-                onChange={(e) => setLocalBudget(prev => ({ ...prev, fiscalizacao: e.target.value }))}
-              />
-            </div>
-            <div className="form-group">
-              <label>Orçamento Educação Médica (R$)</label>
-              <input
-                type="number"
-                step="0.01"
-                value={localBudget.educacao}
-                onChange={(e) => setLocalBudget(prev => ({ ...prev, educacao: e.target.value }))}
-              />
-            </div>
-            <div className="form-group">
-              <label>Orçamento Cota Parte Projetos (R$)</label>
-              <input
-                type="number"
-                step="0.01"
-                value={localBudget.cota}
-                onChange={(e) => setLocalBudget(prev => ({ ...prev, cota: e.target.value }))}
-              />
-            </div>
-            <div className="form-group">
-              <label>Orçamento Jeton (Viagens) (R$)</label>
-              <input
-                type="number"
-                step="0.01"
-                value={localBudget.jeton}
-                onChange={(e) => setLocalBudget(prev => ({ ...prev, jeton: e.target.value }))}
-              />
-            </div>
+          <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '0.4rem', marginBottom: '1rem' }}>
+            Informe o orçamento de cada parcela separadamente. O total exibido no relatório será a soma das duas parcelas.
+          </p>
+
+          {/* Helper: column headers */}
+          <div className="form-row" style={{ marginBottom: '0.25rem', marginTop: '0.25rem' }}>
+            <div style={{ flex: 0.6 }} />
+            <div style={{ flex: 1, textAlign: 'center', fontSize: '0.78rem', fontWeight: '700', color: 'var(--primary-color)', letterSpacing: '0.03em' }}>1ª PARCELA</div>
+            <div style={{ flex: 1, textAlign: 'center', fontSize: '0.78rem', fontWeight: '700', color: 'var(--text-secondary)', letterSpacing: '0.03em' }}>2ª PARCELA</div>
           </div>
+
+          {[
+            { label: 'Fiscalização', p1: 'fiscalizacao_p1', p2: 'fiscalizacao_p2' },
+            { label: 'Educação Médica', p1: 'educacao_p1', p2: 'educacao_p2' },
+            { label: 'Cota Parte Projetos', p1: 'cota_p1', p2: 'cota_p2' },
+            { label: 'Jeton (Viagens)', p1: 'jeton_p1', p2: 'jeton_p2' },
+          ].map(({ label, p1, p2 }) => (
+            <div key={label} className="form-row" style={{ marginTop: '0.75rem', alignItems: 'center' }}>
+              <div style={{ flex: 0.6 }}>
+                <label style={{ fontSize: '0.82rem', fontWeight: '600', margin: 0 }}>{label}</label>
+              </div>
+              <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={localBudget[p1]}
+                  onChange={(e) => setLocalBudget(prev => ({ ...prev, [p1]: e.target.value }))}
+                  placeholder="0,00"
+                />
+              </div>
+              <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={localBudget[p2]}
+                  onChange={(e) => setLocalBudget(prev => ({ ...prev, [p2]: e.target.value }))}
+                  placeholder="0,00"
+                />
+              </div>
+            </div>
+          ))}
+
           <button
             className="btn btn-accent"
-            style={{ marginTop: '1rem' }}
+            style={{ marginTop: '1.5rem' }}
             onClick={handleSaveBudgets}
             disabled={isSavingBudget}
           >
