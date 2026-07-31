@@ -11,9 +11,9 @@ param(
 
 $owner      = "EstagiarioCREMAL"
 $repo       = "sistema-para-contabilidade"
-$tag        = "v1.2.5"
-$releaseName = "v1.2.5 - Seleção de Parcela no Exportar PDF"
-$releaseBody = "## O que há de novo nesta versão`n`n- **Seleção de Parcela no Botão Exportar PDF**: agora é possível escolher 'Todas', '1ª Parcela' ou '2ª Parcela' diretamente no botão de exportação rápida de PDF`n- **Orçamento Simplificado**: nas configurações, apenas Fiscalização e Educação Médica têm campos de orçamento por parcela (Cota Parte e Jeton removidos)`n- **Correções de Orçamento por Parcela**: o valor do orçamento no PDF de parcela específica é obtido automaticamente das configurações salvas"
+$tag        = "v1.2.6"
+$releaseName = "v1.2.6 - Suporte a Auto-Updater para Repositório Privado"
+$releaseBody = "## O que há de novo nesta versão`n`n- **Auto-Updater para Repositório Privado**: atualizações automáticas integradas com autenticação segura`n- **Seleção de Parcela no Exportar PDF**: escolha de 'Todas', '1ª Parcela' ou '2ª Parcela' direto no botão de exportação rápida`n- **Orçamento Simplificado**: configurações focadas em Fiscalização e Educação Médica"
 
 $releaseDir = Join-Path $PSScriptRoot "release"
 $headers = @{

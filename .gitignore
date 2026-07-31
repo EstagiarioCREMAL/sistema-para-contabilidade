@@ -3,3 +3,5 @@ dist
 .env
 release
 release/
+dev-app-update.yml
+app-update.yml
